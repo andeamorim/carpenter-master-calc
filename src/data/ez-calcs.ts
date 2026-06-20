@@ -1,0 +1,68 @@
+import type { EZCalcItem } from '../types';
+
+export const EZ_CALCS: EZCalcItem[] = [
+  {
+    id: 'right-angle',
+    title: 'Right Angle',
+    description: 'Pitch, Rise, Run, Diagonal & cut angles',
+    icon: '📐',
+    route: '/calculators/right-angle',
+    premium: false,
+  },
+  {
+    id: 'rafter',
+    title: 'Rafter Solutions',
+    description: 'Common, Hip, Valley & Jack rafters',
+    icon: '🏠',
+    route: '/calculators/rafter',
+    premium: false,
+  },
+  {
+    id: 'stairs',
+    title: 'Stair Calculator',
+    description: 'Risers, treads, stringer & headroom',
+    icon: '🪜',
+    route: '/calculators/stairs',
+    premium: false,
+  },
+  {
+    id: 'studs',
+    title: 'Stud Wall',
+    description: 'Stud count with on-center spacing',
+    icon: '🧱',
+    route: '/calculators/studs',
+    premium: false,
+  },
+  {
+    id: 'roofing',
+    title: 'Roofing Materials',
+    description: 'Squares, bundles & 4×8 sheets',
+    icon: '🔨',
+    route: '/calculators/roofing',
+    premium: false,
+  },
+  {
+    id: 'board-feet',
+    title: 'Board Feet',
+    description: 'Lumber volume estimation',
+    icon: '🪵',
+    route: '/calculators/board-feet',
+    premium: true,
+  },
+  {
+    id: 'drywall',
+    title: 'Drywall Sheets',
+    description: '4×8, 4×9, 4×12 sheet count',
+    icon: '📋',
+    route: '/calculators/drywall',
+    premium: true,
+  },
+  {
+    id: 'compound-miter',
+    title: 'Compound Miter',
+    description: 'Crown molding miter & bevel angles',
+    icon: '✂️',
+    route: '/calculators/compound-miter',
+    premium: true,
+  },
+];

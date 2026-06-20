@@ -1,0 +1,31 @@
+import { Stack, router } from 'expo-router';
+import { useEffect } from 'react';
+import { StatusBar } from 'expo-status-bar';
+import { useSettingsStore } from '../src/store/settings';
+import { useSubscriptionStore } from '../src/store/subscription';
+
+export default function RootLayout() {
+  const darkMode = useSettingsStore((s) => s.darkMode);
+  const { isSubscribed, isTrialActive, trialStartDate, hasAccess } = useSubscriptionStore();
+
+  useEffect(() => {
+    if (!isSubscribed && !isTrialActive && !trialStartDate) {
+      const timer = setTimeout(() => router.push('/paywall'), 800);
+      return () => clearTimeout(timer);
+    }
+  }, [isSubscribed, isTrialActive, trialStartDate, hasAccess]);
+
+  return (
+    <>
+      <StatusBar style={darkMode ? 'light' : 'dark'} />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen
+          name="paywall"
+          options={{ presentation: 'modal', headerShown: true, title: 'Subscribe' }}
+        />
+        <Stack.Screen name="calculators" />
+      </Stack>
+    </>
+  );
+}

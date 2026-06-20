@@ -1,25 +1,64 @@
 {
   "expo": {
-    "name": "carpenter-master-calc",
+    "name": "Carpenter Master Calc",
     "slug": "carpenter-master-calc",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
+    "scheme": "carpentermaster",
+    "description": "Professional construction calculator for US carpenters. Feet-inch-fraction math, rafters, stairs, framing & more.",
+    "primaryColor": "#C45C26",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1A1A1A"
+    },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.carpentermaster.calc",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "Used for voice project notes (coming soon)."
+      },
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "android": {
+      "package": "com.carpentermaster.calc",
+      "versionCode": 1,
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#1A1A1A",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "permissions": []
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-splash-screen"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "subscription": {
+        "monthlyPrice": "4.99",
+        "monthlyProductIdIos": "com.carpentermaster.calc.monthly",
+        "monthlyProductIdAndroid": "com.carpentermaster.calc.monthly",
+        "annualProductIdIos": "com.carpentermaster.calc.annual",
+        "annualProductIdAndroid": "com.carpentermaster.calc.annual",
+        "trialDays": 14
+      },
+      "eas": {
+        "projectId": "REPLACE_WITH_EAS_PROJECT_ID"
+      }
     }
   }
 }
