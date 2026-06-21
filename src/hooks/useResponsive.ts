@@ -86,8 +86,7 @@ export function useResponsive(): ResponsiveMetrics {
         ? 20
         : 10
       : Math.max(insets.bottom, 10);
-    const tabBarCore = 52;
-    const tabBarHeight = tabBarCore + tabBarBottom;
+    const tabBarHeight = 6 + 24 + 14 + tabBarBottom;
 
     const usableHeight = height - insets.top - tabBarHeight - 48;
 

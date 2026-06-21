@@ -31,6 +31,15 @@ export default function Root({ children }: PropsWithChildren) {
                 touch-action: manipulation;
               }
               * { box-sizing: border-box; }
+              @media (max-width: 768px) {
+                nav[role="tablist"] {
+                  min-height: 64px !important;
+                  padding-bottom: max(env(safe-area-inset-bottom, 0px), 12px) !important;
+                }
+                nav[role="tablist"] [role="tab"] {
+                  overflow: visible !important;
+                }
+              }
             `,
           }}
         />
