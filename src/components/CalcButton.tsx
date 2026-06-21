@@ -118,6 +118,7 @@ export function CalcButton({
             color: textColor,
             fontSize: double ? fontSize * 1.35 : fontSize,
             fontWeight: variant === 'equals' ? '400' : variant === 'number' ? '400' : '500',
+            opacity: disabled ? 0.45 : 1,
           },
         ]}
         numberOfLines={2}

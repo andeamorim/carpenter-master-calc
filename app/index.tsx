@@ -16,9 +16,14 @@ export default function CalculatorScreen() {
   const r = useResponsive();
   const keypadInset = useKeypadInset();
   const calc = useCalculatorStore();
+  const inputUnit = useCalculatorStore((s) => s.inputUnit);
+  const feetInchDecimal = useCalculatorStore((s) => s.feetInchDecimal);
   const fractionResolution = useSettingsStore((s) => s.fractionResolution);
   const displayMode = useSettingsStore((s) => s.displayMode);
   const defaultInputUnit = useSettingsStore((s) => s.defaultInputUnit);
+
+  const decimalDisabled = inputUnit === 'inches';
+  const fractionsDisabled = inputUnit === 'feet' && !feetInchDecimal;
 
   useEffect(() => {
     calc.refreshDisplayFormat();
@@ -29,6 +34,7 @@ export default function CalculatorScreen() {
     variant: BtnVariant;
     action: () => void;
     wide?: boolean;
+    disabled?: boolean;
   }[][] = [
     [
       { label: 'AC', variant: 'function', action: calc.pressClear },
@@ -56,8 +62,13 @@ export default function CalculatorScreen() {
     ],
     [
       { label: '0', variant: 'number', action: () => calc.pressDigit(0) },
-      { label: '.', variant: 'number', action: calc.pressDecimal },
-      { label: 'a⁄c', variant: 'construction', action: calc.pressFraction },
+      { label: '.', variant: 'number', action: calc.pressDecimal, disabled: decimalDisabled },
+      {
+        label: 'a⁄c',
+        variant: 'construction',
+        action: calc.pressFraction,
+        disabled: fractionsDisabled,
+      },
     ],
   ];
 
@@ -89,6 +100,7 @@ export default function CalculatorScreen() {
               theme={theme}
               fraction
               flex={0}
+              disabled={fractionsDisabled}
               onPress={() => calc.pressQuickFraction(f.num, f.den)}
             />
           ))}
@@ -104,6 +116,7 @@ export default function CalculatorScreen() {
                   variant={btn.variant}
                   theme={theme}
                   wide={btn.wide}
+                  disabled={btn.disabled}
                   onPress={btn.action}
                 />
               ))}
