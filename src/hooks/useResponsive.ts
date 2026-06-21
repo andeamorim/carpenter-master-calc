@@ -16,7 +16,7 @@ export interface ResponsiveMetrics {
   size: ScreenSize;
   scale: number;
   contentMaxWidth: number | undefined;
-  appMaxWidth: number;
+  appMaxWidth: number | undefined;
   padding: number;
   buttonHeight: number;
   buttonHeightSmall: number;
@@ -72,15 +72,24 @@ export function useResponsive(): ResponsiveMetrics {
       1.12,
     );
 
-    const appMaxWidth = isDesktop ? 480 : isTablet ? 560 : width;
-    const contentMaxWidth = isDesktop || isTablet ? appMaxWidth : undefined;
+    const desktopMax = 480;
+    const appMaxWidth = isDesktop ? desktopMax : undefined;
+    const contentMaxWidth = isDesktop ? desktopMax : undefined;
     const padding = isNarrow ? 6 : isCompactWidth ? 8 : isDesktop ? 20 : 12;
 
     const buttonHeight = Math.round(clamp(52 * scale, 36, 58));
     const buttonHeightSmall = Math.round(clamp(42 * scale, 30, 48));
     const buttonHeightEquals = Math.round(clamp(58 * scale, 42, 68));
 
-    const usableHeight = height - insets.top - insets.bottom - (isCompactHeight ? 52 : 56);
+    const tabBarBottom = isWeb
+      ? width < 768
+        ? 20
+        : 10
+      : Math.max(insets.bottom, 10);
+    const tabBarCore = 52;
+    const tabBarHeight = tabBarCore + tabBarBottom;
+
+    const usableHeight = height - insets.top - tabBarHeight - 48;
 
     return {
       width,
@@ -114,11 +123,9 @@ export function useResponsive(): ResponsiveMetrics {
       hintFontSize: Math.round(clamp(12 * scale, 10, 14)),
       subDisplayFontSize: Math.round(clamp(14 * scale, 11, 16)),
       sectionTitleFontSize: Math.round(clamp(18 * scale, 15, 20)),
-      needsScroll: usableHeight < 620 || (isWeb && height < 760),
+      needsScroll: usableHeight < 560 || isCompactHeight,
       fractionButtonMinWidth: Math.round(clamp(44 * scale, 34, 52)),
-      tabBarHeight:
-        50 +
-        (Platform.OS === 'web' && width < 768 ? 28 : Math.max(insets.bottom, 8)),
+      tabBarHeight,
     };
   }, [width, height, insets.top, insets.bottom]);
 }

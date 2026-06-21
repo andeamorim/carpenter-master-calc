@@ -19,23 +19,18 @@ export default function Root({ children }: PropsWithChildren) {
                 height: 100%;
                 min-height: 100dvh;
                 width: 100%;
+                max-width: 100vw;
+                overflow-x: hidden;
               }
               body {
                 margin: 0;
                 overflow: hidden;
+                background: #1A1A1A;
                 -webkit-font-smoothing: antialiased;
                 -webkit-text-size-adjust: 100%;
                 touch-action: manipulation;
               }
               * { box-sizing: border-box; }
-              @media (max-width: 768px) {
-                #root {
-                  padding-bottom: env(safe-area-inset-bottom, 28px);
-                }
-              }
-              @media (min-width: 900px) {
-                body { background: #1a1a1e; }
-              }
             `,
           }}
         />

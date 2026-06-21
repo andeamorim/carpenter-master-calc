@@ -28,10 +28,7 @@ export function ScreenContainer({
     <View
       style={[
         styles.inner,
-        {
-          paddingHorizontal: r.padding,
-          maxWidth: r.contentMaxWidth,
-        },
+        { paddingHorizontal: r.padding, maxWidth: r.contentMaxWidth },
         centerContent && styles.centered,
         !scroll && contentStyle,
       ]}
@@ -54,10 +51,7 @@ export function ScreenContainer({
       <View
         style={[
           styles.inner,
-          {
-            paddingHorizontal: r.padding,
-            maxWidth: r.contentMaxWidth,
-          },
+          { paddingHorizontal: r.padding, maxWidth: r.contentMaxWidth },
           centerContent && styles.centered,
         ]}
       >
@@ -73,25 +67,7 @@ export function ScreenContainer({
       style={[styles.fill, { backgroundColor: theme.background }]}
       edges={edges}
     >
-      <View
-        style={[
-          styles.fill,
-          r.isDesktop && { backgroundColor: theme.surfaceElevated, alignItems: 'center' },
-        ]}
-      >
-        <View
-          style={[
-            styles.fill,
-            {
-              width: '100%',
-              maxWidth: r.appMaxWidth,
-            },
-            r.isDesktop && styles.desktopShadow,
-          ]}
-        >
-          {body}
-        </View>
-      </View>
+      {body}
     </SafeAreaView>
   );
 }
@@ -108,12 +84,5 @@ const styles = StyleSheet.create({
   },
   centered: {
     justifyContent: 'center',
-  },
-  desktopShadow: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    elevation: 4,
   },
 });

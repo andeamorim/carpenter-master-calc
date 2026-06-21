@@ -137,13 +137,16 @@ export default function CalculatorScreen() {
   );
 
   return (
-    <ScreenContainer scroll={r.needsScroll}>
+    <ScreenContainer scroll={r.needsScroll} style={styles.screen}>
       {content}
     </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    minHeight: 0,
+  },
   main: {
     flex: 1,
     justifyContent: 'space-between',
