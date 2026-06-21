@@ -1,7 +1,7 @@
 # Carpenter Master Calc — Memória do Projeto
 
 > **Última atualização:** 2026-06-20  
-> **Tag de referência:** `v1.0.0-mvp`  
+> **Tag de referência:** `v1.1.0-behavior-verified`
 > **Propósito deste arquivo:** Handoff para qualquer AI ou dev que continue o projeto. Leia isto antes de tocar no código.
 
 ---
@@ -71,10 +71,14 @@ carpenter-master-calc/
 │   │   └── ResultRow.tsx
 │   └── data/ez-calcs.ts
 ├── scripts/
+│   ├── test-helpers.ts
 │   ├── verify-math.ts
 │   ├── verify-calculator-input.ts
 │   ├── verify-calculator-chain.ts
-│   └── verify-calculator-store.ts
+│   ├── verify-calculator-store.ts
+│   ├── verify-calculator-sequential.ts
+│   ├── verify-calculator-behavior.ts
+│   └── verify-calculator-sequential-edge.ts
 ├── vercel.json
 ├── eas.json                   # EAS build (projectId ainda placeholder)
 └── PROJECT_MEMORY.md          # ← ESTE ARQUIVO
@@ -114,24 +118,57 @@ Ou use botões de fração rápida: `1/8`, `1/4`, `3/8`, `1/2`, `5/8`, `3/4`, `7
 
 **Regra crítica:** fração só é aplicada quando `fracDen > 1`. Numerador parcial com `fracDen=1` NÃO converte pés/polegadas.
 
-### 3.4 Layout da calculadora principal (UX acordada)
+### 3.4 Layout da calculadora principal (UX atual — simplificado)
 
 **Mantido:**
-- Memory: MC, MR, M+, M−
-- Tape (histórico)
-- Frações rápidas
-- `a⁄c` (custom fraction)
-- Botão `=` grande dourado full-width
-- Teclas `′` (pés), `″` (polegadas)
+- Frações rápidas (`1/8` … `7/8`)
+- `a⁄c` (fração manual)
+- Botão `=` full-width
+- Toggle **INCH | FEET** no canto superior direito do visor (único lugar para trocar unidade)
+- Teclas: AC, CE, ⌫, ÷, ×, −, +, 0–9, `.`, `=`
 
-**Removido da tela principal** (movido para EZ Calcs):
-- Pitch, Rise, Run, Diag, Stair
+**Removido da tela principal:**
+- Memory (MC/MR/M+/M−)
+- Tape (histórico)
+- Botão ±
+- Teclas `′`/`″` separadas (substituídas pelo toggle INCH/FEET)
 - π, x², √
-- Teclas laranja de denominador (2, 4, 8, 16) — denominador digitado no teclado numérico
+- Pitch, Rise, Run, Diag, Stair (ficam em EZ Calcs)
+
+**Regras de teclas desabilitadas (UI):**
+| Modo | `.` | Frações / `a⁄c` |
+|------|-----|-----------------|
+| INCH | desabilitado | habilitado |
+| FEET (só pés) | habilitado | desabilitado |
+| FEET (após `.`) | — | habilitado |
+
+**Notação carpinteiro em FEET:** `3` `.` `6` = `3'6"` (ponto separa pés das polegadas).
+
+**AC vs CE:** AC limpa tudo mas **preserva** `inputUnit`. CE limpa só a entrada atual, mantém cadeia.
 
 **Hints de input:** aparecem só no Display, não empurram o teclado.
 
-### 3.5 Responsividade
+### 3.5 Modos INCH vs FEET (entrada e operações)
+
+| Modo | Dígitos significam | Display exemplo |
+|------|-------------------|-----------------|
+| INCH (default) | polegadas totais | `42"` |
+| FEET | pés inteiros | `8'` |
+| FEET + `.` | polegadas após o ponto | `3.6` → `3'6"` |
+
+**Operações:**
+- `+` / `−` → ambos operandos na **unidade ativa** (dimensional)
+- `×` / `÷` → 1º operando dimensional, 2º **escalar** (número puro, sem `"`/`'`)
+
+**Toggle INCH↔FEET:** preserva o valor numérico, só reformata. Exemplos:
+- `72"` ↔ `6'`
+- `15"` ↔ `1' 3"`
+- `7"` → FEET: continua `7"` (0'7", exibido compacto) — **não** vira 7 pés
+- Após toggle, `isNewEntry=true`; próximo dígito sozinho **substitui** (em FEET = pés). Para encadear, use operador primeiro (`7"` → FEET → `+` → `3'`).
+
+**`defaultInputUnit`** em Settings (`inches` | `feet`).
+
+### 3.6 Responsividade
 
 Hook `useResponsive.ts` com breakpoints:
 - `compact` — telas estreitas (<380w) ou baixas (<700h)
@@ -185,17 +222,21 @@ Desktop web: app centralizado (max 480px), fundo escuro.
 ## 5. Scripts de verificação
 
 ```bash
-npm run verify-math      # Motor dimensional (add, format, parse, rafter, stairs)
-npm run verify-input     # Input de frações (11-15/16, denominador parcial)
-npm run verify-chain     # Lógica de encadeamento e in-frac
-npm run verify-store     # Fluxos reais do Zustand store
-npm run typecheck        # TypeScript
-npm run build:web        # Export para Vercel
+npm run verify-math        # Motor dimensional (6 testes)
+npm run verify-input       # Input de frações (4 testes)
+npm run verify-chain       # Encadeamento e in-frac
+npm run verify-store       # Fluxos Zustand (4 testes)
+npm run verify-sequential  # Cadeias sequenciais (28 testes)
+npm run verify-behavior    # Matriz de comportamento INCH/FEET (34 testes)
+npm run verify-edge        # Edge cases sequenciais (51 testes)
+npm run verify-all         # math + input + store + sequential + behavior (76 testes)
+npm run typecheck
+npm run build:web          # Export para Vercel
 ```
 
-**Rodar todos antes de deploy:**
+**Rodar antes de deploy:**
 ```bash
-npm run verify-math && npm run verify-input && npm run verify-chain && npm run verify-store && npm run typecheck
+npm run verify-all && npm run typecheck
 ```
 
 ---
@@ -246,15 +287,21 @@ Stores em `src/store/subscription.ts` — `hasAccess()` retorna true se subscrib
 - [ ] Integração laser/trena Bluetooth (mencionado como futuro)
 
 ### Fase 3 — Polish
-- [ ] Testes Jest automatizados no CI (existe `dimensional.test.ts` básico)
-- [ ] Repeat last operation (pressionar `=` de novo)
-- [ ] Trocar operador quando segundo operando já digitado (ex: `11+5` → `-` vira `11-5`)
+- [x] Suítes `verify-sequential`, `verify-behavior`, `verify-edge` (76+ testes de calculadora)
+- [ ] Testes Jest no CI (existe `dimensional.test.ts` básico)
+- [ ] Repeat last operation (pressionar `=` de novo) — **não implementado**
+- [x] Trocar operador antes do 2º operando (`11+` → `-`)
+- [x] Trocar operador com 2º operando digitado (`10+5` → `-` = `15-`)
 - [ ] GitHub Actions CI (verify-* + typecheck)
 - [ ] Push notifications para fim de trial
 
-### Débitos técnicos conhecidos
-- `pressSign`, `memoryAdd/Subtract` após resultado podem usar `buildCurrentValue()` = 0 em vez de `lastResult`
-- `+html.tsx` força `body { overflow: hidden }` — ok para calc, revisar se Projects precisar scroll web
+### Limitações / débitos conhecidos
+- `15 × =` com operando vazio → `0"` (buildCurrentValue = 0)
+- Repetir `=` não repete última operação
+- `5.0` em FEET: valor correto (`5'0"`), visor mostra `5.` até polegada ≠ 0
+- `pressSign` existe no store mas **sem botão na UI**; durante cadeia, `=` após ± no operando usa 0
+- Divisões encadeadas de frações podem arredondar agressivamente (resolução display)
+- `+html.tsx` força `body { overflow: hidden }` — ok para calc
 - Peer dependency warning `react-native-worklets` no build Vercel (não bloqueia)
 
 ---
@@ -264,11 +311,13 @@ Stores em `src/store/subscription.ts` — `hasAccess()` retorna true se subscrib
 | Preferência | Valor |
 |-------------|-------|
 | Arredondamento default | **1/16"** |
-| Label fração | Manter `a⁄c` por enquanto |
-| Memory buttons | Manter na tela principal |
+| Unidade default | **INCHES** (toggle no visor) |
+| Label fração | Manter `a⁄c` |
+| Memory / Tape | **Removidos** da tela principal |
 | Comunicação | Português |
 | Inspiração UX | Construction Master Pro Calc |
 | Preço alvo | $4.99/mês |
+| Deploy | `git push` + `vercel --prod --yes` |
 
 ---
 
@@ -276,25 +325,19 @@ Stores em `src/store/subscription.ts` — `hasAccess()` retorna true se subscrib
 
 ```
 Estado Zustand (calculator.ts):
-├── display          # String formatada na tela
-├── subDisplay       # Expressão (ex: "11" +")
-├── accumulator      # Primeiro operando (DimensionalValue)
-├── pendingOperator  # +, -, ×, ÷ ou null
-├── lastResult       # Resultado do último =
-├── isNewEntry       # true = aguardando novo dígito
-├── inputMode        # idle | feet | inches | frac-num | frac-den | scalar
-├── currentFeet/Inches, fracNum/fracDen
-└── memory           # MR/M+/M-/MC
+├── display, subDisplay, inputHint
+├── inputUnit          # 'inches' | 'feet' — toggle só no visor
+├── feetInchDecimal    # true após '.' em FEET (dígitos → polegadas)
+├── accumulator, pendingOperator, lastResult, isNewEntry
+├── inputMode          # idle | feet | inches | frac-num | frac-den | scalar
+└── currentFeet/Inches, fracNum/fracDen
 
-pressOperator:
-1. Se isNewEntry + accumulator + pendingOp → SÓ troca operador
-2. Se isNewEntry + lastResult + sem accumulator → usa lastResult
-3. Se accumulator + pendingOp + !isNewEntry → calcula intermediário
-4. Senão → inicia nova operação com valor atual
-
-pressEquals:
-- accumulator op current → result
-- Zera accumulator/pendingOp, guarda lastResult, resetEntry
+getActiveValue: usa lastResult só se idle + isNewEntry + sem cadeia pendente
+pressOperator: encadeia, troca op, ou inicia com getActiveValue
+pressEquals: usa buildCurrentValue (não getActiveValue) — operando vazio = 0
+toggleInputUnit: reformata valor, valueToEntryFields, preserva cadeia se ativa
+pressClear (AC): limpa tudo, preserva inputUnit
+pressClearEntry (CE): resetEntry, preserva cadeia + inputUnit
 ```
 
 ---
@@ -307,14 +350,14 @@ npm start          # Expo dev server
 npm run web        # Abrir no browser
 
 # Qualidade
-npm run verify-math && npm run verify-input && npm run verify-store && npm run typecheck
+npm run verify-all && npm run typecheck
 
 # Deploy web
-npm run build:web && npx vercel --prod
+npm run build:web && npx vercel --prod --yes
 
 # Git
-git tag -l                    # Ver tags
-git show v1.0.0-mvp           # Ver notas da release
+git tag -l
+git show v1.1.0-behavior-verified
 ```
 
 ---
@@ -322,14 +365,25 @@ git show v1.0.0-mvp           # Ver notas da release
 ## 12. Para a próxima AI
 
 1. **Leia este arquivo primeiro.**
-2. Rode `npm run verify-store` — se falhar, não deploy.
-3. **Não remova** memory, tape, frações rápidas, ou `a⁄c` sem pedido explícito.
-4. **Não reintroduza** teclas de denominador laranja ou Pitch/Stair na tela principal.
-5. Mudanças em `dimensional.ts` ou `calculator.ts` exigem atualizar scripts `verify-*`.
-6. Default de arredondamento é **16** (1/16"), não 32.
-7. Modo `in-frac` mostra polegadas totais, nunca pés.
-8. Usuário quer publicar nas stores — priorize EAS + billing real quando pedir "próximo passo".
+2. Rode `npm run verify-all` — se falhar, não deploy.
+3. **Não reintroduza** memory, tape, ou ± sem pedido explícito.
+4. **Não reintroduza** teclas `′`/`″` separadas — unidade é só o toggle INCH/FEET no visor.
+5. **Não reintroduza** teclas de denominador laranja ou Pitch/Stair na tela principal.
+7. Default de arredondamento é **16** (1/16"), não 32.
+8. Modo `in-frac` mostra polegadas totais, nunca pés.
+9. Em FEET, dígitos = pés; polegadas via `.` (ex: `0.3` = 0'3").
+10. Usuário quer publicar nas stores — priorize EAS + billing real quando pedir "próximo passo".
 
 ---
 
-*Gerado e commitado em 2026-06-20 como handoff do MVP web + lógica de calculadora.*
+## 13. Release `v1.1.0-behavior-verified` (2026-06-20)
+
+- Análise completa de comportamento da calculadora (teclas, cadeias, edge cases)
+- Suíte `verify-calculator-behavior.ts` (34 cenários INCH/FEET)
+- `verify-edge` corrigido (reset de unidade entre seções) — 51 testes
+- `verify-all` = 76 testes passando
+- Documentado: toggle `7"`→FEET, AC/CE, frações, limitações de `=` repetido
+
+---
+
+*Atualizado em 2026-06-20 — calculadora simplificada + comportamento verificado.*

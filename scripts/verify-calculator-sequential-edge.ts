@@ -25,7 +25,9 @@ function assert(label: string, condition: boolean) {
 }
 
 function reset() {
-  useCalculatorStore.getState().pressClear();
+  const calc = useCalculatorStore.getState();
+  if (calc.inputUnit === 'feet') calc.toggleInputUnit();
+  calc.pressClear();
 }
 
 function typeInches(n: number) {
@@ -197,12 +199,14 @@ useCalculatorStore.getState().pressDigit(2);
 eq();
 assert(`8'6"/2=4'3"`, useCalculatorStore.getState().display === `4' 3"`);
 op('+');
-typeInches(12);
+useCalculatorStore.getState().pressDigit(1); // 1' = 12" in feet mode
 eq();
-assert(`4'3"+12"=5'3"`, useCalculatorStore.getState().display === `5' 3"`);
+assert(`4'3"+1'=5'3"`, useCalculatorStore.getState().display === `5' 3"`);
+reset();
 
 // ─── 6. Fraction chain: 11-15/16 / 2 / 2 ───
 console.log('\n6. Fraction chains');
+reset();
 useSettingsStore.getState().updateSettings({ displayMode: 'in-frac', fractionResolution: 32 });
 reset();
 typeInches(11);
@@ -222,6 +226,7 @@ assert(
 
 // ─── 7. Unit toggle during chains ───
 console.log('\n7. Unit toggle');
+reset();
 useSettingsStore.getState().updateSettings({ displayMode: 'in-frac', fractionResolution: 16 });
 reset();
 typeInches(72);
@@ -238,9 +243,11 @@ eq();
 useCalculatorStore.getState().toggleInputUnit();
 assert('15" → 1\' 3"', useCalculatorStore.getState().display === `1' 3"`);
 op('+');
-typeInches(3);
+useCalculatorStore.getState().pressDigit(0);
+useCalculatorStore.getState().pressDecimal();
+useCalculatorStore.getState().pressDigit(3); // 0.3 = 0'3" in feet mode
 eq();
-assert('chain after toggle: 1\'3" + 3" = 1\'6"', useCalculatorStore.getState().display === `1' 6"`);
+assert('chain in feet: 1\'3" + 0.3 = 1\'6"', useCalculatorStore.getState().display === `1' 6"`);
 
 reset();
 typeInches(102);
@@ -287,8 +294,8 @@ useCalculatorStore.getState().pressDigit(2);
 useCalculatorStore.getState().pressDigit(3);
 useCalculatorStore.getState().pressBackspace();
 assert(
-  'backspace 123→12 (scalar operand)',
-  useCalculatorStore.getState().display === `12` && useCalculatorStore.getState().pendingOperator === '+',
+  'backspace 123→12" (dimensional + operand)',
+  useCalculatorStore.getState().display === `12"` && useCalculatorStore.getState().pendingOperator === '+',
 );
 eq();
 assert('10+12=22', useCalculatorStore.getState().display === `22"`);
@@ -305,6 +312,7 @@ assert(
 
 // ─── 10. Scalar vs dimensional transitions in chains ───
 console.log('\n10. Scalar/dimensional mode transitions');
+reset();
 useSettingsStore.getState().updateSettings({ displayMode: 'in-frac', fractionResolution: 16 });
 reset();
 typeInches(6); // dimensional 6"
@@ -335,6 +343,7 @@ eq();
 assert(`2'×3=6' (feet mode)`, useCalculatorStore.getState().display === `6'`);
 useCalculatorStore.getState().toggleInputUnit();
 assert('6\' toggled to 72"', useCalculatorStore.getState().display === `72"`);
+reset();
 
 // ─── 11. in-frac display mode chains ───
 console.log('\n11. in-frac display chains');

@@ -33,7 +33,9 @@
     "verify-chain": "npx tsx scripts/verify-calculator-chain.ts",
     "verify-store": "npx tsx scripts/verify-calculator-store.ts",
     "verify-sequential": "npx tsx scripts/verify-calculator-sequential.ts",
-    "verify-all": "npm run verify-math && npm run verify-input && npm run verify-store && npm run verify-sequential",
+    "verify-behavior": "npx tsx scripts/verify-calculator-behavior.ts",
+    "verify-edge": "npx tsx scripts/verify-calculator-sequential-edge.ts",
+    "verify-all": "npm run verify-math && npm run verify-input && npm run verify-store && npm run verify-sequential && npm run verify-behavior",
     "typecheck": "tsc --noEmit"
   },
   "private": true
