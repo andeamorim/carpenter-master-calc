@@ -78,7 +78,7 @@ export function CalcButton({
           ? r.buttonFontSizeSmall
           : r.buttonFontSize;
 
-  const flexValue = flex ?? (fullWidth ? undefined : wide || double ? 2 : 1);
+  const flexValue = flex ?? (fullWidth ? undefined : wide ? 2 : 1);
   const isFixedWidth = flex === 0;
   const isRound = !fullWidth && !small && !fraction && !double;
 
