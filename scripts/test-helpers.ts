@@ -22,3 +22,14 @@ export function eq() {
 export function op(symbol: '+' | '-' | '×' | '÷') {
   useCalculatorStore.getState().pressOperator(symbol);
 }
+
+/** Feet mode: 3.6 → 3'6" */
+export function typeFeetInchesDot(feet: number, inches: number) {
+  const calc = useCalculatorStore.getState();
+  if (calc.inputUnit === 'inches') calc.toggleInputUnit();
+  for (const d of String(feet)) calc.pressDigit(Number(d));
+  calc.pressDecimal();
+  if (inches > 0) {
+    for (const d of String(inches)) calc.pressDigit(Number(d));
+  }
+}

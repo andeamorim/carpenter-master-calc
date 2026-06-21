@@ -1,6 +1,6 @@
 import { useCalculatorStore } from '../src/store/calculator';
 import { useSettingsStore } from '../src/store/settings';
-import { eq, op, resetCalculator, typeFeetInches, typeInches } from './test-helpers';
+import { eq, op, resetCalculator, typeFeetInches, typeFeetInchesDot, typeInches } from './test-helpers';
 
 let passed = 0;
 let failed = 0;
@@ -132,6 +132,25 @@ op('÷');
 useCalculatorStore.getState().pressDigit(2);
 eq();
 assert('after 10", ÷2 = 5"', useCalculatorStore.getState().display === `5"`);
+
+// --- Feet decimal entry: 3.6 = 3'6" ---
+resetCalculator();
+useCalculatorStore.getState().toggleInputUnit();
+typeFeetInchesDot(3, 6);
+assert(`3.6 = 3'6"`, useCalculatorStore.getState().display === `3' 6"`);
+resetCalculator();
+useCalculatorStore.getState().toggleInputUnit();
+typeFeetInchesDot(12, 6);
+assert(`12.6 = 12'6"`, useCalculatorStore.getState().display === `12' 6"`);
+resetCalculator();
+useCalculatorStore.getState().toggleInputUnit();
+typeFeetInchesDot(5, 0);
+op('+');
+typeFeetInchesDot(3, 6);
+eq();
+assert(`5' + 3.6 = 8'6"`, useCalculatorStore.getState().display === `8' 6"`);
+useCalculatorStore.getState().toggleInputUnit();
+resetCalculator();
 
 // --- Feet mode: 8 + 3 = 11' (both operands in feet) ---
 resetCalculator();

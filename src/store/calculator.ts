@@ -38,10 +38,12 @@ interface CalculatorStore {
   fracNum: number;
   fracDen: number;
   inputUnit: InputUnit;
+  feetInchDecimal: boolean;
   lastResult: DimensionalValue | null;
   isNewEntry: boolean;
 
   pressDigit: (digit: number) => void;
+  pressDecimal: () => void;
   toggleInputUnit: () => void;
   pressFraction: () => void;
   pressDenominator: (den: number) => void;
@@ -178,15 +180,22 @@ function formatInputDisplay(state: CalculatorStore): string {
     return String(state.currentInches || state.currentFeet);
   }
 
+  if (state.inputUnit === 'feet' && state.feetInchDecimal) {
+    if (state.currentInches > 0) {
+      return formatDimensional(buildCurrentValue(state), fractionResolution, mode);
+    }
+    return `${state.currentFeet}.`;
+  }
+
   return formatDimensional(buildCurrentValue(state), fractionResolution, mode);
 }
 
 function getInputHint(unit: InputUnit, mode: InputMode, fracNum: number): string {
   switch (mode) {
     case 'feet':
-      return 'Enter feet';
+      return unit === 'feet' ? 'Feet · use . for inches (3.6 = 3\'6")' : 'Enter feet';
     case 'inches':
-      return unit === 'feet' ? 'Enter inches · fraction keys for 7/8…' : 'Enter inches · fraction keys for 7/8…';
+      return unit === 'feet' ? 'Inches after decimal · or use fraction keys' : 'Enter inches · fraction keys for 7/8…';
     case 'frac-num':
       return fracNum > 0
         ? 'Tap a⁄c — then type bottom number (e.g. 1 6 for /16)'
@@ -197,8 +206,8 @@ function getInputHint(unit: InputUnit, mode: InputMode, fracNum: number): string
       return unit === 'feet' ? 'Enter feet' : 'Enter inches';
     default:
       return unit === 'feet'
-        ? 'Feet mode · tap unit above to switch'
-        : 'Inches mode · tap unit above to switch';
+        ? 'Feet mode · 3.6 = 3\'6" · tap INCH/FEET to switch'
+        : 'Inches mode · tap INCH/FEET to switch';
   }
 }
 
@@ -216,6 +225,7 @@ function resetEntry(state: CalculatorStore): Partial<CalculatorStore> {
     currentInches: 0,
     fracNum: 0,
     fracDen: 0,
+    feetInchDecimal: false,
     inputMode: 'idle',
     isNewEntry: true,
   };
@@ -279,8 +289,26 @@ export const useCalculatorStore = create<CalculatorStore>((set, get) => ({
   fracNum: 0,
   fracDen: 0,
   inputUnit: 'inches',
+  feetInchDecimal: false,
   lastResult: null,
   isNewEntry: true,
+
+  pressDecimal: () => {
+    const state = get();
+    if (state.inputUnit !== 'feet' || state.feetInchDecimal) return;
+
+    if (state.isNewEntry) {
+      set({
+        ...resetEntry(state),
+        isNewEntry: false,
+        inputMode: 'feet',
+        feetInchDecimal: true,
+      });
+    } else if (state.inputMode === 'feet') {
+      set({ feetInchDecimal: true, isNewEntry: false });
+    }
+    updateDisplay(set, get);
+  },
 
   pressDigit: (digit) => {
     const state = get();
@@ -303,6 +331,12 @@ export const useCalculatorStore = create<CalculatorStore>((set, get) => ({
 
     if (state.inputMode === 'scalar') {
       set({ currentInches: state.currentInches * 10 + digit, isNewEntry: false });
+    } else if (state.feetInchDecimal) {
+      set({
+        currentInches: state.currentInches * 10 + digit,
+        inputMode: 'inches',
+        isNewEntry: false,
+      });
     } else if (state.inputMode === 'feet') {
       set({ currentFeet: state.currentFeet * 10 + digit, isNewEntry: false });
     } else if (state.inputMode === 'inches') {
@@ -333,6 +367,7 @@ export const useCalculatorStore = create<CalculatorStore>((set, get) => ({
 
     const patch: Partial<CalculatorStore> = {
       inputUnit: newUnit,
+      feetInchDecimal: false,
       ...fields,
       display: formatValue(val, newUnit),
       inputMode: inChain && !state.isNewEntry ? state.inputMode : 'idle',
@@ -454,6 +489,7 @@ export const useCalculatorStore = create<CalculatorStore>((set, get) => ({
       currentInches: 0,
       fracNum: 0,
       fracDen: 0,
+      feetInchDecimal: false,
       inputMode: 'idle',
       isNewEntry: true,
     });
@@ -483,8 +519,23 @@ export const useCalculatorStore = create<CalculatorStore>((set, get) => ({
     } else if (state.inputMode === 'inches') {
       const newInches = Math.floor(state.currentInches / 10);
       set({ currentInches: newInches, fracNum: 0, fracDen: 0 });
+    } else if (state.feetInchDecimal) {
+      if (state.currentInches > 0) {
+        const newInches = Math.floor(state.currentInches / 10);
+        set({ currentInches: newInches });
+        if (newInches === 0) set({ inputMode: 'feet' });
+      } else {
+        set({ feetInchDecimal: false });
+        if (state.currentFeet > 0) {
+          set({ currentFeet: Math.floor(state.currentFeet / 10) });
+        } else {
+          set({ inputMode: 'idle', isNewEntry: true });
+        }
+      }
     } else if (state.inputMode === 'feet') {
-      set({ currentFeet: Math.floor(state.currentFeet / 10) });
+      const newFeet = Math.floor(state.currentFeet / 10);
+      set({ currentFeet: newFeet });
+      if (newFeet === 0) set({ inputMode: 'idle', isNewEntry: true });
     }
     updateDisplay(set, get);
   },

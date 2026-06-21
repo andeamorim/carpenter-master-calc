@@ -55,7 +55,8 @@ export default function CalculatorScreen() {
       { label: '+', variant: 'operator', action: () => calc.pressOperator('+') },
     ],
     [
-      { label: '0', variant: 'number', action: () => calc.pressDigit(0), wide: true },
+      { label: '0', variant: 'number', action: () => calc.pressDigit(0) },
+      { label: '.', variant: 'number', action: calc.pressDecimal },
       { label: 'a⁄c', variant: 'construction', action: calc.pressFraction },
     ],
   ];
