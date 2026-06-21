@@ -238,6 +238,10 @@ function startDigitEntry(state: CalculatorStore, digit: number): Partial<Calcula
   };
 }
 
+function isScalarOperator(op: Operator): boolean {
+  return op === '×' || op === '÷';
+}
+
 function startScalarEntry(state: CalculatorStore, digit: number): Partial<CalculatorStore> {
   return {
     ...resetEntry(state),
@@ -282,7 +286,11 @@ export const useCalculatorStore = create<CalculatorStore>((set, get) => ({
     const state = get();
 
     if (state.isNewEntry && state.pendingOperator) {
-      set(startScalarEntry(state, digit));
+      if (isScalarOperator(state.pendingOperator)) {
+        set(startScalarEntry(state, digit));
+      } else {
+        set(startDigitEntry(state, digit));
+      }
       updateDisplay(set, get);
       return;
     }
@@ -434,7 +442,7 @@ export const useCalculatorStore = create<CalculatorStore>((set, get) => ({
   },
 
   pressClear: () => {
-    const unit = getDefaultInputUnit();
+    const unit = get().inputUnit;
     set({
       display: zeroDisplay(unit),
       subDisplay: '',
@@ -442,7 +450,6 @@ export const useCalculatorStore = create<CalculatorStore>((set, get) => ({
       accumulator: null,
       pendingOperator: null,
       lastResult: null,
-      inputUnit: unit,
       currentFeet: 0,
       currentInches: 0,
       fracNum: 0,

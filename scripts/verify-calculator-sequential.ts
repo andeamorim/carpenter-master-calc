@@ -133,6 +133,26 @@ useCalculatorStore.getState().pressDigit(2);
 eq();
 assert('after 10", ÷2 = 5"', useCalculatorStore.getState().display === `5"`);
 
+// --- Feet mode: 8 + 3 = 11' (both operands in feet) ---
+resetCalculator();
+useCalculatorStore.getState().toggleInputUnit();
+useCalculatorStore.getState().pressDigit(8);
+op('+');
+useCalculatorStore.getState().pressDigit(3);
+eq();
+assert(`feet mode: 8' + 3' = 11'`, useCalculatorStore.getState().display === `11'`);
+useCalculatorStore.getState().toggleInputUnit();
+resetCalculator();
+
+// --- AC preserves unit selection ---
+useCalculatorStore.getState().toggleInputUnit();
+useCalculatorStore.getState().pressDigit(5);
+useCalculatorStore.getState().pressClear();
+assert('AC keeps feet selected', useCalculatorStore.getState().inputUnit === 'feet');
+assert('AC zero in feet', useCalculatorStore.getState().display === `0'`);
+useCalculatorStore.getState().pressClear();
+useCalculatorStore.getState().toggleInputUnit();
+
 // --- Unit toggle ---
 resetCalculator();
 typeInches(72);
@@ -148,6 +168,7 @@ typeInches(5);
 eq();
 useCalculatorStore.getState().toggleInputUnit();
 assert('15" toggles to 1\' 3"', useCalculatorStore.getState().display === `1' 3"`);
+useCalculatorStore.getState().toggleInputUnit();
 
 // --- Sign after result ---
 resetCalculator();

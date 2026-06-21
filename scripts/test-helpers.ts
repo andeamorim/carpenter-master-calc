@@ -2,6 +2,7 @@ import { useCalculatorStore } from '../src/store/calculator';
 
 export function resetCalculator() {
   const calc = useCalculatorStore.getState();
+  if (calc.inputUnit === 'feet') calc.toggleInputUnit();
   calc.pressClear();
 }
 
