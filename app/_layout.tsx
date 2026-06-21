@@ -19,8 +19,11 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <StatusBar style={darkMode ? 'light' : 'dark'} />
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(tabs)" />
+      <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="ez-calcs" />
+        <Stack.Screen name="projects" />
+        <Stack.Screen name="settings" />
         <Stack.Screen
           name="paywall"
           options={{ presentation: 'modal', headerShown: true, title: 'Subscribe' }}

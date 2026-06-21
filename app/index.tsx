@@ -1,19 +1,21 @@
 import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { CalcButton } from '../../src/components/CalcButton';
-import { Display } from '../../src/components/Display';
-import { ScreenContainer } from '../../src/components/ScreenContainer';
-import { useResponsive } from '../../src/hooks/useResponsive';
-import { useTheme } from '../../src/hooks/useTheme';
-import { QUICK_FRACTIONS, useCalculatorStore } from '../../src/store/calculator';
-import { useSettingsStore } from '../../src/store/settings';
-import { useTapeStore } from '../../src/store/tape';
+import { CalcButton } from '../src/components/CalcButton';
+import { Display } from '../src/components/Display';
+import { PageChrome } from '../src/components/PageChrome';
+import { useKeypadInset } from '../src/hooks/useKeypadInset';
+import { useResponsive } from '../src/hooks/useResponsive';
+import { useTheme } from '../src/hooks/useTheme';
+import { QUICK_FRACTIONS, useCalculatorStore } from '../src/store/calculator';
+import { useSettingsStore } from '../src/store/settings';
+import { useTapeStore } from '../src/store/tape';
 
 type BtnVariant = 'number' | 'operator' | 'function' | 'construction' | 'memory';
 
 export default function CalculatorScreen() {
   const theme = useTheme();
   const r = useResponsive();
+  const keypadInset = useKeypadInset();
   const calc = useCalculatorStore();
   const fractionResolution = useSettingsStore((s) => s.fractionResolution);
   const displayMode = useSettingsStore((s) => s.displayMode);
@@ -39,7 +41,7 @@ export default function CalculatorScreen() {
       { label: 'Tape', variant: 'function', action: () => setShowTape(!showTape), small: true },
     ],
     [
-      { label: 'C', variant: 'function', action: calc.pressClear },
+      { label: 'AC', variant: 'function', action: calc.pressClear },
       { label: 'CE', variant: 'function', action: calc.pressClearEntry },
       { label: '⌫', variant: 'function', action: calc.pressBackspace },
       { label: '±', variant: 'function', action: calc.pressSign },
@@ -71,113 +73,99 @@ export default function CalculatorScreen() {
     ],
   ];
 
-  const content = (
-    <View style={styles.main}>
-      <View style={[styles.displayArea, r.isCompactHeight && styles.displayAreaCompact]}>
-        <Display
-          value={calc.display}
-          subValue={calc.subDisplay}
-          hint={calc.inputHint}
-          theme={theme}
-          tapeVisible={showTape}
-          tapeEntries={tape.entries}
-        />
-      </View>
-
-      {!r.isCompactHeight && (
-        <Text style={[styles.sectionLabel, { color: theme.textSecondary, fontSize: r.hintFontSize - 1 }]}>
-          Quick fractions
-        </Text>
-      )}
-
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.fractionScroll}
-        contentContainerStyle={[styles.fractionRow, { gap: r.buttonGap }]}
-      >
-        {QUICK_FRACTIONS.map((f) => (
-          <CalcButton
-            key={f.label}
-            label={f.label}
-            variant="construction"
-            theme={theme}
-            small
-            flex={0}
-            onPress={() => calc.pressQuickFraction(f.num, f.den)}
-          />
-        ))}
-      </ScrollView>
-
-      <View style={styles.keypad}>
-        {rows.map((row, ri) => (
-          <View key={ri} style={styles.row}>
-            {row.map((btn) => (
-              <CalcButton
-                key={btn.label}
-                label={btn.label}
-                variant={btn.variant}
-                theme={theme}
-                wide={btn.wide}
-                small={btn.small}
-                onPress={btn.action}
-              />
-            ))}
-          </View>
-        ))}
-        <CalcButton
-          label="="
-          variant="equals"
-          theme={theme}
-          fullWidth
-          onPress={calc.pressEquals}
-        />
-      </View>
-    </View>
-  );
-
   return (
-    <ScreenContainer scroll={r.needsScroll} style={styles.screen}>
-      {content}
-    </ScreenContainer>
+    <PageChrome
+      showMenu
+      rightAction={
+        showTape ? (
+          <Text style={[styles.tapeBadge, { color: theme.primary }]}>Tape</Text>
+        ) : null
+      }
+    >
+      <View style={[styles.root, { paddingHorizontal: r.padding }]}>
+        <View style={styles.displayZone}>
+          <Display
+            value={calc.display}
+            subValue={calc.subDisplay}
+            hint={calc.inputHint}
+            theme={theme}
+            tapeVisible={showTape}
+            tapeEntries={tape.entries}
+          />
+        </View>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.fractionScroll}
+          contentContainerStyle={[styles.fractionRow, { gap: r.buttonGap, paddingHorizontal: 2 }]}
+        >
+          {QUICK_FRACTIONS.map((f) => (
+            <CalcButton
+              key={f.label}
+              label={f.label}
+              variant="construction"
+              theme={theme}
+              small
+              flex={0}
+              onPress={() => calc.pressQuickFraction(f.num, f.den)}
+            />
+          ))}
+        </ScrollView>
+
+        <View style={[styles.keypad, { paddingBottom: keypadInset }]}>
+          {rows.map((row, ri) => (
+            <View key={ri} style={styles.row}>
+              {row.map((btn) => (
+                <CalcButton
+                  key={btn.label}
+                  label={btn.label}
+                  variant={btn.variant}
+                  theme={theme}
+                  wide={btn.wide}
+                  small={btn.small}
+                  onPress={btn.action}
+                />
+              ))}
+            </View>
+          ))}
+          <CalcButton
+            label="="
+            variant="equals"
+            theme={theme}
+            fullWidth
+            onPress={calc.pressEquals}
+          />
+        </View>
+      </View>
+    </PageChrome>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    minHeight: 0,
-  },
-  main: {
+  root: {
     flex: 1,
-    justifyContent: 'space-between',
     minHeight: 0,
   },
-  displayArea: {
-    flexShrink: 1,
-    minHeight: 0,
+  displayZone: {
+    flex: 1,
+    minHeight: 80,
+    justifyContent: 'flex-end',
   },
-  displayAreaCompact: {
-    flexGrow: 0,
-    flexShrink: 1,
-  },
-  sectionLabel: {
-    fontWeight: '600',
-    marginBottom: 2,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+  tapeBadge: {
+    fontSize: 13,
+    fontWeight: '700',
   },
   fractionScroll: {
     flexGrow: 0,
-    marginBottom: 4,
+    marginBottom: 2,
   },
   fractionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingRight: 8,
   },
   keypad: {
     flexShrink: 0,
-    justifyContent: 'flex-end',
   },
   row: {
     flexDirection: 'row',

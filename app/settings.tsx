@@ -1,15 +1,15 @@
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
-import { ScreenContainer } from '../../src/components/ScreenContainer';
-import { useResponsive } from '../../src/hooks/useResponsive';
-import { useTheme } from '../../src/hooks/useTheme';
+import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { PageChrome } from '../src/components/PageChrome';
+import { useResponsive } from '../src/hooks/useResponsive';
+import { useTheme } from '../src/hooks/useTheme';
 import {
   SUBSCRIPTION_PRICE,
   TRIAL_DAYS,
   useSubscriptionStore,
-} from '../../src/store/subscription';
-import { useSettingsStore } from '../../src/store/settings';
-import type { DisplayMode, FractionResolution } from '../../src/types';
+} from '../src/store/subscription';
+import { useSettingsStore } from '../src/store/settings';
+import type { DisplayMode, FractionResolution } from '../src/types';
 
 const RESOLUTIONS: FractionResolution[] = [2, 4, 8, 16, 32, 64];
 const DISPLAY_MODES: { value: DisplayMode; label: string }[] = [
@@ -27,7 +27,11 @@ export default function SettingsScreen() {
   const hasAccess = subscription.hasAccess();
 
   return (
-    <ScreenContainer scroll contentStyle={{ paddingBottom: 40 }}>
+    <PageChrome title="Settings" showBack onBack={() => router.back()}>
+      <ScrollView
+        contentContainerStyle={{ padding: r.padding, paddingBottom: 48 }}
+        showsVerticalScrollIndicator={false}
+      >
         <Section title="Subscription" theme={theme}>
           <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <Text style={[styles.cardTitle, { color: theme.text }]}>
@@ -61,8 +65,7 @@ export default function SettingsScreen() {
           </SettingRow>
           <Text style={[styles.subLabel, { color: theme.textSecondary }]}>Rounding Precision</Text>
           <Text style={[styles.helpText, { color: theme.textSecondary }]}>
-            How results are rounded. Default 1/16&quot; — change anytime; calculator updates
-            immediately. Internal math stays at 1/64&quot; for accuracy.
+            Default 1/16&quot;. Internal math stays at 1/64&quot; for accuracy.
           </Text>
           <View style={styles.chipRow}>
             {RESOLUTIONS.map((res) => (
@@ -75,8 +78,6 @@ export default function SettingsScreen() {
                     backgroundColor:
                       settings.fractionResolution === res ? theme.primary : theme.surface,
                     borderColor: theme.border,
-                    paddingHorizontal: r.isCompactWidth ? 10 : 12,
-                    paddingVertical: r.isCompactWidth ? 6 : 8,
                   },
                 ]}
               >
@@ -84,7 +85,7 @@ export default function SettingsScreen() {
                   style={{
                     color: settings.fractionResolution === res ? '#fff' : theme.text,
                     fontWeight: '600',
-                    fontSize: r.isCompactWidth ? 12 : 13,
+                    fontSize: 13,
                   }}
                 >
                   1/{res}
@@ -147,9 +148,10 @@ export default function SettingsScreen() {
         </Section>
 
         <Text style={[styles.version, { color: theme.textSecondary }]}>
-          Carpenter Master Calc v1.0.0 — Imperial (US)
+          Carpenter Master Calc v1.0.0
         </Text>
-    </ScreenContainer>
+      </ScrollView>
+    </PageChrome>
   );
 }
 
@@ -165,12 +167,7 @@ function Section({
   const r = useResponsive();
   return (
     <View style={styles.section}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          { color: theme.text, fontSize: r.sectionTitleFontSize },
-        ]}
-      >
+      <Text style={[styles.sectionTitle, { color: theme.text, fontSize: r.sectionTitleFontSize }]}>
         {title}
       </Text>
       {children}
@@ -196,37 +193,36 @@ function SettingRow({
 }
 
 const styles = StyleSheet.create({
-  scroll: { flexGrow: 1 },
   section: { marginBottom: 28 },
-  sectionTitle: { fontSize: 18, fontWeight: '700', marginBottom: 12 },
-  card: { padding: 16, borderRadius: 12, borderWidth: 1 },
+  sectionTitle: { fontWeight: '700', marginBottom: 12 },
+  card: { padding: 16, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth },
   cardTitle: { fontSize: 16, fontWeight: '700' },
   cardDesc: { fontSize: 13, marginTop: 4, marginBottom: 12 },
-  button: { padding: 14, borderRadius: 10, alignItems: 'center' },
+  button: { padding: 14, borderRadius: 12, alignItems: 'center' },
   buttonText: { color: '#fff', fontWeight: '700', fontSize: 15 },
   settingRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 12,
-    borderBottomWidth: 1,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   settingLabel: { fontSize: 15 },
-  subLabel: { fontSize: 13, marginBottom: 8 },
+  subLabel: { fontSize: 13, marginBottom: 8, marginTop: 8 },
   helpText: { fontSize: 12, lineHeight: 17, marginBottom: 10 },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: {
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
   },
   option: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     padding: 14,
-    borderRadius: 10,
-    borderWidth: 1,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
     marginBottom: 6,
   },
   version: { textAlign: 'center', fontSize: 12, marginTop: 8 },

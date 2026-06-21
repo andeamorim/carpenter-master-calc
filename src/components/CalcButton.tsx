@@ -45,12 +45,14 @@ export function CalcButton({
   }[variant];
 
   const textColor =
-    variant === 'operator' ||
-    variant === 'construction' ||
-    variant === 'memory' ||
-    variant === 'equals'
-      ? theme.textOnPrimary
-      : theme.text;
+    variant === 'function'
+      ? '#000000'
+      : variant === 'operator' ||
+          variant === 'construction' ||
+          variant === 'memory' ||
+          variant === 'equals'
+        ? theme.textOnPrimary
+        : theme.text;
 
   const minHeight = fullWidth
     ? r.buttonHeightEquals
@@ -68,6 +70,7 @@ export function CalcButton({
 
   const flexValue = flex ?? (fullWidth ? undefined : wide ? 2 : 1);
   const isFixedWidth = flex === 0;
+  const isRound = !fullWidth && !small;
 
   return (
     <Pressable
@@ -75,10 +78,11 @@ export function CalcButton({
       disabled={disabled}
       style={({ pressed }) => [
         styles.button,
+        isRound && styles.round,
+        fullWidth && styles.equals,
         {
           backgroundColor: bgColor,
-          borderColor: variant === 'equals' ? theme.keyEquals : theme.border,
-          opacity: pressed ? 0.75 : disabled ? 0.4 : 1,
+          opacity: pressed ? 0.65 : disabled ? 0.4 : 1,
           flex: isFixedWidth ? undefined : flexValue,
           flexGrow: isFixedWidth ? 0 : undefined,
           flexShrink: isFixedWidth ? 0 : undefined,
@@ -90,12 +94,21 @@ export function CalcButton({
           width: fullWidth ? '100%' : undefined,
           minHeight,
           margin: r.buttonGap,
-          borderWidth: variant === 'equals' ? 2 : 1,
-          borderRadius: r.isCompactWidth ? 6 : 8,
+          borderRadius: fullWidth ? 14 : isRound ? minHeight / 2 : 10,
         },
       ]}
     >
-      <Text style={[styles.label, { color: textColor, fontSize }]} numberOfLines={2}>
+      <Text
+        style={[
+          styles.label,
+          {
+            color: textColor,
+            fontSize,
+            fontWeight: variant === 'equals' ? '400' : variant === 'number' ? '400' : '500',
+          },
+        ]}
+        numberOfLines={2}
+      >
         {label}
       </Text>
     </Pressable>
@@ -108,8 +121,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 2,
   },
+  round: {},
+  equals: {
+    marginTop: 2,
+  },
   label: {
-    fontWeight: '700',
     textAlign: 'center',
   },
 });

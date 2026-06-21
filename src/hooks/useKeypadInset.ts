@@ -1,16 +1,14 @@
 import { Platform, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-export function useTabBarPadding(): number {
+/** Bottom safe padding for calculator keypad (replaces tab bar inset). */
+export function useKeypadInset(): number {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const isMobileWeb = Platform.OS === 'web' && width < 768;
 
   if (isMobileWeb) {
-    return Math.max(insets.bottom, 20);
+    return Math.max(insets.bottom, 16);
   }
-  if (Platform.OS === 'web') {
-    return Math.max(insets.bottom, 10);
-  }
-  return Math.max(insets.bottom, 10);
+  return Math.max(insets.bottom, 8);
 }

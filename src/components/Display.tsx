@@ -13,34 +13,26 @@ interface DisplayProps {
 
 export function Display({ value, subValue, hint, theme, tapeVisible, tapeEntries }: DisplayProps) {
   const r = useResponsive();
+  const showHint = hint && hint !== 'Tap numbers · use " for inches · fraction keys for 7/8, 15/16…';
 
   return (
-    <View
-      style={[
-        styles.container,
-        {
-          backgroundColor: theme.displayBg,
-          minHeight: r.displayMinHeight,
-          padding: r.isCompactHeight ? 12 : 16,
-          borderRadius: r.isCompactWidth ? 10 : 12,
-        },
-      ]}
-    >
+    <View style={[styles.container, { minHeight: r.displayMinHeight }]}>
       {tapeVisible && tapeEntries && tapeEntries.length > 0 && (
         <ScrollView
-          style={[styles.tape, { maxHeight: r.isCompactHeight ? 36 : 50 }]}
+          style={[styles.tape, { maxHeight: r.isCompactHeight ? 40 : 56 }]}
           nestedScrollEnabled
         >
           {tapeEntries.slice(0, 5).map((entry, i) => (
             <Text
               key={i}
-              style={[styles.tapeLine, { color: theme.textSecondary, fontSize: r.hintFontSize - 1 }]}
+              style={[styles.tapeLine, { color: theme.textSecondary, fontSize: r.hintFontSize }]}
             >
               {entry.expression} = {entry.result}
             </Text>
           ))}
         </ScrollView>
       )}
+
       {subValue ? (
         <Text
           style={[
@@ -53,20 +45,22 @@ export function Display({ value, subValue, hint, theme, tapeVisible, tapeEntries
           {subValue}
         </Text>
       ) : null}
+
       <Text
         style={[styles.mainDisplay, { color: theme.displayText, fontSize: r.displayFontSize }]}
         numberOfLines={2}
         adjustsFontSizeToFit
-        minimumFontScale={0.45}
+        minimumFontScale={0.4}
       >
         {value}
       </Text>
-      {hint ? (
+
+      {showHint ? (
         <Text
-          style={[styles.hint, { color: theme.accent, fontSize: r.hintFontSize }]}
+          style={[styles.hint, { color: theme.accent, fontSize: r.hintFontSize - 1 }]}
           numberOfLines={2}
           adjustsFontSizeToFit
-          minimumFontScale={0.8}
+          minimumFontScale={0.75}
         >
           {hint}
         </Text>
@@ -77,30 +71,30 @@ export function Display({ value, subValue, hint, theme, tapeVisible, tapeEntries
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     justifyContent: 'flex-end',
-    marginBottom: 6,
+    paddingHorizontal: 8,
+    paddingBottom: 4,
   },
-  tape: {
-    marginBottom: 4,
-  },
+  tape: { marginBottom: 6 },
   tapeLine: {
+    textAlign: 'right',
     fontFamily: 'Menlo',
     marginBottom: 2,
   },
   subDisplay: {
     textAlign: 'right',
-    marginBottom: 4,
-    fontFamily: 'Menlo',
+    marginBottom: 6,
+    fontWeight: '400',
   },
   mainDisplay: {
-    fontWeight: '700',
+    fontWeight: '300',
     textAlign: 'right',
-    fontFamily: 'Menlo',
+    letterSpacing: -1,
   },
   hint: {
     textAlign: 'right',
-    marginTop: 6,
+    marginTop: 8,
     lineHeight: 16,
-    fontStyle: 'italic',
   },
 });

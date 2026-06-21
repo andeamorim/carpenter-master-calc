@@ -25,19 +25,17 @@ export default function Root({ children }: PropsWithChildren) {
               body {
                 margin: 0;
                 overflow: hidden;
-                background: #1A1A1A;
+                background: #000000;
                 -webkit-font-smoothing: antialiased;
                 -webkit-text-size-adjust: 100%;
                 touch-action: manipulation;
               }
               * { box-sizing: border-box; }
-              @media (max-width: 768px) {
-                nav[role="tablist"] {
-                  min-height: 64px !important;
-                  padding-bottom: max(env(safe-area-inset-bottom, 0px), 12px) !important;
-                }
-                nav[role="tablist"] [role="tab"] {
-                  overflow: visible !important;
+              @media (min-width: 900px) {
+                body { background: #000000; }
+                #root {
+                  max-width: 430px;
+                  margin: 0 auto;
                 }
               }
             `,

@@ -8,7 +8,6 @@ interface AppShellProps {
   style?: ViewStyle;
 }
 
-/** Full-bleed background; optional centered column on desktop only. */
 export function AppShell({ children, style }: AppShellProps) {
   const theme = useTheme();
   const r = useResponsive();
@@ -18,11 +17,7 @@ export function AppShell({ children, style }: AppShellProps) {
       <View
         style={[
           styles.inner,
-          r.isDesktop && {
-            maxWidth: r.appMaxWidth,
-            alignSelf: 'center',
-            backgroundColor: theme.background,
-          },
+          r.isDesktop && { maxWidth: r.appMaxWidth, alignSelf: 'center' },
         ]}
       >
         {children}
@@ -32,12 +27,6 @@ export function AppShell({ children, style }: AppShellProps) {
 }
 
 const styles = StyleSheet.create({
-  outer: {
-    flex: 1,
-    width: '100%',
-  },
-  inner: {
-    flex: 1,
-    width: '100%',
-  },
+  outer: { flex: 1, width: '100%' },
+  inner: { flex: 1, width: '100%' },
 });

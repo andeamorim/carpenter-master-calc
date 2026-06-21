@@ -32,7 +32,6 @@ export interface ResponsiveMetrics {
   sectionTitleFontSize: number;
   needsScroll: boolean;
   fractionButtonMinWidth: number;
-  tabBarHeight: number;
 }
 
 function clamp(value: number, min: number, max: number) {
@@ -58,37 +57,34 @@ export function useResponsive(): ResponsiveMetrics {
 
     const scale = clamp(
       isNarrow
-        ? 0.72
+        ? 0.74
         : isCompactHeight
-          ? 0.78
+          ? 0.8
           : isCompactWidth
-            ? 0.86
+            ? 0.88
             : isDesktop
-              ? 1.08
-              : isTablet
-                ? 1.02
-                : 1,
-      0.68,
-      1.12,
+              ? 1.05
+              : 1,
+      0.7,
+      1.1,
     );
 
-    const desktopMax = 480;
+    const desktopMax = 430;
     const appMaxWidth = isDesktop ? desktopMax : undefined;
     const contentMaxWidth = isDesktop ? desktopMax : undefined;
-    const padding = isNarrow ? 6 : isCompactWidth ? 8 : isDesktop ? 20 : 12;
+    const padding = isNarrow ? 6 : isCompactWidth ? 8 : isDesktop ? 16 : 10;
 
-    const buttonHeight = Math.round(clamp(52 * scale, 36, 58));
-    const buttonHeightSmall = Math.round(clamp(42 * scale, 30, 48));
-    const buttonHeightEquals = Math.round(clamp(58 * scale, 42, 68));
+    const buttonHeight = Math.round(clamp(54 * scale, 40, 58));
+    const buttonHeightSmall = Math.round(clamp(40 * scale, 32, 46));
+    const buttonHeightEquals = Math.round(clamp(56 * scale, 44, 64));
 
-    const tabBarBottom = isWeb
+    const keypadInset = isWeb
       ? width < 768
-        ? 20
-        : 10
-      : Math.max(insets.bottom, 10);
-    const tabBarHeight = 6 + 24 + 14 + tabBarBottom;
-
-    const usableHeight = height - insets.top - tabBarHeight - 48;
+        ? 16
+        : 8
+      : Math.max(insets.bottom, 8);
+    const headerHeight = insets.top + 52;
+    const usableHeight = height - headerHeight - keypadInset - 280;
 
     return {
       width,
@@ -107,24 +103,17 @@ export function useResponsive(): ResponsiveMetrics {
       buttonHeight,
       buttonHeightSmall,
       buttonHeightEquals,
-      buttonGap: isNarrow ? 1 : isCompactWidth ? 2 : 3,
-      buttonFontSize: Math.round(clamp(16 * scale, 13, 18)),
-      buttonFontSizeSmall: Math.round(clamp(11 * scale, 9, 13)),
-      buttonFontSizeEquals: Math.round(clamp(28 * scale, 20, 32)),
-      displayMinHeight: Math.round(
-        clamp(
-          isCompactHeight ? 72 * scale : 130 * scale,
-          isCompactHeight ? 64 : 88,
-          150,
-        ),
-      ),
-      displayFontSize: Math.round(clamp(38 * scale, 22, 44)),
+      buttonGap: isNarrow ? 3 : 4,
+      buttonFontSize: Math.round(clamp(24 * scale, 20, 28)),
+      buttonFontSizeSmall: Math.round(clamp(12 * scale, 10, 14)),
+      buttonFontSizeEquals: Math.round(clamp(32 * scale, 26, 36)),
+      displayMinHeight: Math.round(clamp(100 * scale, 72, 140)),
+      displayFontSize: Math.round(clamp(64 * scale, 40, 72)),
       hintFontSize: Math.round(clamp(12 * scale, 10, 14)),
-      subDisplayFontSize: Math.round(clamp(14 * scale, 11, 16)),
+      subDisplayFontSize: Math.round(clamp(20 * scale, 16, 24)),
       sectionTitleFontSize: Math.round(clamp(18 * scale, 15, 20)),
-      needsScroll: usableHeight < 560 || isCompactHeight,
-      fractionButtonMinWidth: Math.round(clamp(44 * scale, 34, 52)),
-      tabBarHeight,
+      needsScroll: usableHeight < 0,
+      fractionButtonMinWidth: Math.round(clamp(44 * scale, 36, 52)),
     };
   }, [width, height, insets.top, insets.bottom]);
 }
