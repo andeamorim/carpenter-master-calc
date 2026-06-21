@@ -16,6 +16,7 @@ interface CalcButtonProps {
   variant?: ButtonVariant;
   theme: Theme;
   wide?: boolean;
+  double?: boolean;
   small?: boolean;
   fraction?: boolean;
   fullWidth?: boolean;
@@ -29,6 +30,7 @@ export function CalcButton({
   variant = 'number',
   theme,
   wide = false,
+  double = false,
   small = false,
   fraction = false,
   fullWidth = false,
@@ -58,11 +60,13 @@ export function CalcButton({
 
   const minHeight = fullWidth
     ? r.buttonHeightEquals
-    : fraction
-      ? r.fractionButtonHeight
-      : small
-        ? r.buttonHeightSmall
-        : r.buttonHeight;
+    : double
+      ? r.buttonHeight * 2
+      : fraction
+        ? r.fractionButtonHeight
+        : small
+          ? r.buttonHeightSmall
+          : r.buttonHeight;
 
   const fontSize = fullWidth
     ? r.buttonFontSizeEquals
@@ -74,9 +78,9 @@ export function CalcButton({
           ? r.buttonFontSizeSmall
           : r.buttonFontSize;
 
-  const flexValue = flex ?? (fullWidth ? undefined : wide ? 2 : 1);
+  const flexValue = flex ?? (fullWidth ? undefined : wide || double ? 2 : 1);
   const isFixedWidth = flex === 0;
-  const isRound = !fullWidth && !small && !fraction;
+  const isRound = !fullWidth && !small && !fraction && !double;
 
   return (
     <Pressable
@@ -103,7 +107,7 @@ export function CalcButton({
           width: fullWidth ? '100%' : undefined,
           minHeight,
           margin: r.buttonGap,
-          borderRadius: fullWidth ? 14 : fraction ? 12 : isRound ? minHeight / 2 : 10,
+          borderRadius: fullWidth ? 14 : double ? 16 : fraction ? 12 : isRound ? minHeight / 2 : 10,
         },
       ]}
     >
@@ -112,7 +116,7 @@ export function CalcButton({
           styles.label,
           {
             color: textColor,
-            fontSize,
+            fontSize: double ? fontSize * 1.35 : fontSize,
             fontWeight: variant === 'equals' ? '400' : variant === 'number' ? '400' : '500',
           },
         ]}

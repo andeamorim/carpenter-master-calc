@@ -28,12 +28,12 @@ export default function CalculatorScreen() {
     variant: BtnVariant;
     action: () => void;
     wide?: boolean;
+    double?: boolean;
   }[][] = [
     [
       { label: 'AC', variant: 'function', action: calc.pressClear },
       { label: 'CE', variant: 'function', action: calc.pressClearEntry },
-      { label: '⌫', variant: 'function', action: calc.pressBackspace },
-      { label: '±', variant: 'function', action: calc.pressSign },
+      { label: '⌫', variant: 'function', action: calc.pressBackspace, double: true },
       { label: '÷', variant: 'operator', action: () => calc.pressOperator('÷') },
     ],
     [
@@ -103,6 +103,7 @@ export default function CalculatorScreen() {
                   variant={btn.variant}
                   theme={theme}
                   wide={btn.wide}
+                  double={btn.double}
                   onPress={btn.action}
                 />
               ))}
@@ -144,5 +145,6 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
+    alignItems: 'center',
   },
 });
