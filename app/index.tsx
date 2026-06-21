@@ -106,7 +106,7 @@ export default function CalculatorScreen() {
               label={f.label}
               variant="construction"
               theme={theme}
-              small
+              fraction
               flex={0}
               onPress={() => calc.pressQuickFraction(f.num, f.den)}
             />

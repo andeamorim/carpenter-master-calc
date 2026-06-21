@@ -32,6 +32,8 @@ export interface ResponsiveMetrics {
   sectionTitleFontSize: number;
   needsScroll: boolean;
   fractionButtonMinWidth: number;
+  fractionButtonHeight: number;
+  fractionButtonFontSize: number;
 }
 
 function clamp(value: number, min: number, max: number) {
@@ -113,7 +115,9 @@ export function useResponsive(): ResponsiveMetrics {
       subDisplayFontSize: Math.round(clamp(20 * scale, 16, 24)),
       sectionTitleFontSize: Math.round(clamp(18 * scale, 15, 20)),
       needsScroll: usableHeight < 0,
-      fractionButtonMinWidth: Math.round(clamp(44 * scale, 36, 52)),
+      fractionButtonMinWidth: Math.round(clamp(54 * scale, 48, 60)),
+      fractionButtonHeight: Math.round(clamp(48 * scale, 42, 52)),
+      fractionButtonFontSize: Math.round(clamp(15 * scale, 13, 17)),
     };
   }, [width, height, insets.top, insets.bottom]);
 }

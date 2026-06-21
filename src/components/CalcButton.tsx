@@ -17,6 +17,7 @@ interface CalcButtonProps {
   theme: Theme;
   wide?: boolean;
   small?: boolean;
+  fraction?: boolean;
   fullWidth?: boolean;
   flex?: number;
   disabled?: boolean;
@@ -29,6 +30,7 @@ export function CalcButton({
   theme,
   wide = false,
   small = false,
+  fraction = false,
   fullWidth = false,
   flex,
   disabled = false,
@@ -56,21 +58,25 @@ export function CalcButton({
 
   const minHeight = fullWidth
     ? r.buttonHeightEquals
-    : small
-      ? r.buttonHeightSmall
-      : r.buttonHeight;
+    : fraction
+      ? r.fractionButtonHeight
+      : small
+        ? r.buttonHeightSmall
+        : r.buttonHeight;
 
   const fontSize = fullWidth
     ? r.buttonFontSizeEquals
-    : small
-      ? r.buttonFontSizeSmall
-      : label.length > 3
+    : fraction
+      ? r.fractionButtonFontSize
+      : small
         ? r.buttonFontSizeSmall
-        : r.buttonFontSize;
+        : label.length > 3
+          ? r.buttonFontSizeSmall
+          : r.buttonFontSize;
 
   const flexValue = flex ?? (fullWidth ? undefined : wide ? 2 : 1);
   const isFixedWidth = flex === 0;
-  const isRound = !fullWidth && !small;
+  const isRound = !fullWidth && !small && !fraction;
 
   return (
     <Pressable
@@ -87,14 +93,17 @@ export function CalcButton({
           flexGrow: isFixedWidth ? 0 : undefined,
           flexShrink: isFixedWidth ? 0 : undefined,
           minWidth: isFixedWidth
-            ? small
-              ? r.fractionButtonMinWidth - 4
-              : r.fractionButtonMinWidth
+            ? fraction
+              ? r.fractionButtonMinWidth
+              : small
+                ? r.fractionButtonMinWidth - 6
+                : r.fractionButtonMinWidth
             : undefined,
+          paddingHorizontal: fraction ? 10 : 2,
           width: fullWidth ? '100%' : undefined,
           minHeight,
           margin: r.buttonGap,
-          borderRadius: fullWidth ? 14 : isRound ? minHeight / 2 : 10,
+          borderRadius: fullWidth ? 14 : fraction ? 12 : isRound ? minHeight / 2 : 10,
         },
       ]}
     >
