@@ -84,6 +84,18 @@ function buildCurrentValue(state: CalculatorStore): DimensionalValue {
   );
 }
 
+/** Displayed result after = when entry is idle, or the value being typed. */
+function getActiveValue(state: CalculatorStore): DimensionalValue {
+  const useLastResult =
+    state.isNewEntry &&
+    state.lastResult &&
+    !state.accumulator &&
+    !state.pendingOperator &&
+    state.inputMode === 'idle';
+
+  return useLastResult ? state.lastResult! : buildCurrentValue(state);
+}
+
 function formatValue(value: DimensionalValue): string {
   const { fractionResolution, displayMode } = getSettings();
   return formatDimensional(value, fractionResolution, displayMode);
@@ -212,7 +224,7 @@ export const useCalculatorStore = create<CalculatorStore>((set, get) => ({
       return;
     }
 
-    if (state.isNewEntry && state.inputMode === 'idle') {
+    if (state.isNewEntry) {
       set({
         ...resetEntry(state),
         isNewEntry: false,
@@ -247,10 +259,10 @@ export const useCalculatorStore = create<CalculatorStore>((set, get) => ({
 
   pressFeet: () => {
     const state = get();
-    if (state.inputMode === 'inches' || state.inputMode === 'idle') {
+    if (state.inputMode === 'inches' || state.inputMode === 'idle' || state.inputMode === 'scalar') {
       set({
         inputMode: 'feet',
-        currentFeet: state.currentInches,
+        currentFeet: state.currentInches || state.currentFeet,
         currentInches: 0,
         fracNum: 0,
         fracDen: 0,
@@ -317,14 +329,7 @@ export const useCalculatorStore = create<CalculatorStore>((set, get) => ({
       return;
     }
 
-    const useLastResult =
-      state.isNewEntry &&
-      state.lastResult &&
-      !state.accumulator &&
-      !state.pendingOperator &&
-      state.inputMode === 'idle';
-
-    const current = useLastResult ? state.lastResult! : buildCurrentValue(state);
+    const current = getActiveValue(state);
 
     if (state.accumulator && state.pendingOperator && !state.isNewEntry) {
       const result = applyOperator(state.accumulator, current, state.pendingOperator);
@@ -414,14 +419,14 @@ export const useCalculatorStore = create<CalculatorStore>((set, get) => ({
 
   pressSign: () => {
     const state = get();
-    const val = buildCurrentValue(state);
+    const val = getActiveValue(state);
     const negated = fromUnits(-val.units);
     set({ display: formatValue(negated), lastResult: negated, ...resetEntry(state) });
   },
 
   pressSquare: () => {
     const state = get();
-    const val = buildCurrentValue(state);
+    const val = getActiveValue(state);
     const squared = fromDecimalInches(toDecimalInches(val) ** 2);
     set({
       display: formatValue(squared),
@@ -433,7 +438,7 @@ export const useCalculatorStore = create<CalculatorStore>((set, get) => ({
 
   pressSqrt: () => {
     const state = get();
-    const val = buildCurrentValue(state);
+    const val = getActiveValue(state);
     const inches = toDecimalInches(val);
     if (inches < 0) return;
     const result = fromDecimalInches(Math.sqrt(inches));
@@ -457,12 +462,12 @@ export const useCalculatorStore = create<CalculatorStore>((set, get) => ({
 
   memoryAdd: () => {
     const state = get();
-    set({ memory: add(state.memory, buildCurrentValue(state)) });
+    set({ memory: add(state.memory, getActiveValue(state)), isNewEntry: true });
   },
 
   memorySubtract: () => {
     const state = get();
-    set({ memory: subtract(state.memory, buildCurrentValue(state)) });
+    set({ memory: subtract(state.memory, getActiveValue(state)), isNewEntry: true });
   },
 
   memoryRecall: () => {

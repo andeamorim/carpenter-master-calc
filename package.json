@@ -32,6 +32,8 @@
     "verify-input": "npx tsx scripts/verify-calculator-input.ts",
     "verify-chain": "npx tsx scripts/verify-calculator-chain.ts",
     "verify-store": "npx tsx scripts/verify-calculator-store.ts",
+    "verify-sequential": "npx tsx scripts/verify-calculator-sequential.ts",
+    "verify-all": "npm run verify-math && npm run verify-input && npm run verify-store && npm run verify-sequential",
     "typecheck": "tsc --noEmit"
   },
   "private": true
