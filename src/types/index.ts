@@ -2,6 +2,8 @@ export type FractionResolution = 2 | 4 | 8 | 16 | 32 | 64;
 
 export type DisplayMode = 'ft-in-frac' | 'ft-decimal' | 'in-frac' | 'decimal-in';
 
+export type InputUnit = 'inches' | 'feet';
+
 export type PitchInputMode = 'ratio' | 'degrees' | 'percent' | 'rise-run';
 
 export interface DimensionalValue {
@@ -12,6 +14,7 @@ export interface DimensionalValue {
 export interface AppSettings {
   fractionResolution: FractionResolution;
   displayMode: DisplayMode;
+  defaultInputUnit: InputUnit;
   defaultStudSpacing: 16 | 24;
   defaultRiserHeight: DimensionalValue;
   defaultTreadWidth: DimensionalValue;

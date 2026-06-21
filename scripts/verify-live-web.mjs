@@ -147,8 +147,8 @@ async function main() {
 
   await runScenario(
     page,
-    'Conversão: 72″ → 6′',
-    ['7', '2', '′'],
+    'Toggle: 72 → ft↔in → 6\'',
+    ['7', '2', 'ft↔in'],
     "6'",
   );
 

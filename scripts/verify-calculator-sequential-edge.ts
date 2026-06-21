@@ -19,7 +19,7 @@ function assert(label: string, condition: boolean) {
     console.error(
       `    display="${s.display}" sub="${s.subDisplay}" mode=${s.inputMode} ` +
         `last=${s.lastResult?.units} acc=${s.accumulator?.units} op=${s.pendingOperator} ` +
-        `feet=${s.currentFeet} in=${s.currentInches} frac=${s.fracNum}/${s.fracDen} view=${s.viewMode}`,
+        `feet=${s.currentFeet} in=${s.currentInches} frac=${s.fracNum}/${s.fracDen} unit=${s.inputUnit}`,
     );
   }
 }
@@ -53,7 +53,7 @@ function snapshot() {
     acc: s.accumulator?.units ?? null,
     pending: s.pendingOperator,
     mode: s.inputMode,
-    view: s.viewMode,
+    unit: s.inputUnit,
   };
 }
 
@@ -182,23 +182,24 @@ op('+');
 op('-');
 assert('11+ then - swap (no second operand)', useCalculatorStore.getState().subDisplay === `11" -`);
 
-// ─── 5. Feet/inches chain: 5'+3'6"=8'6" → /2 → +1' ───
+// ─── 5. Feet/inches chain: 60"+42"=102" → toggle feet → /2 → +12" ───
 console.log('\n5. Feet/inches chains');
-useSettingsStore.getState().updateSettings({ displayMode: 'ft-in-frac', fractionResolution: 16 });
+useSettingsStore.getState().updateSettings({ displayMode: 'in-frac', fractionResolution: 16 });
 reset();
-typeFeetInches(5, 0);
+typeInches(60);
 op('+');
-typeFeetInches(3, 6);
+typeInches(42);
 eq();
-assert(`5'+3'6"=8'6"`, useCalculatorStore.getState().display === `8' 6"`);
+useCalculatorStore.getState().toggleInputUnit();
+assert(`60"+42" toggled to 8'6"`, useCalculatorStore.getState().display === `8' 6"`);
 op('÷');
 useCalculatorStore.getState().pressDigit(2);
 eq();
 assert(`8'6"/2=4'3"`, useCalculatorStore.getState().display === `4' 3"`);
 op('+');
-typeFeetInches(1, 0);
+typeInches(12);
 eq();
-assert(`4'3"+1'=5'3"`, useCalculatorStore.getState().display === `5' 3"`);
+assert(`4'3"+12"=5'3"`, useCalculatorStore.getState().display === `5' 3"`);
 
 // ─── 6. Fraction chain: 11-15/16 / 2 / 2 ───
 console.log('\n6. Fraction chains');
@@ -219,14 +220,14 @@ assert(
   useCalculatorStore.getState().display === `3"`,
 );
 
-// ─── 7. Unit conversion during chains ───
-console.log('\n7. Unit conversion');
+// ─── 7. Unit toggle during chains ───
+console.log('\n7. Unit toggle');
 useSettingsStore.getState().updateSettings({ displayMode: 'in-frac', fractionResolution: 16 });
 reset();
 typeInches(72);
-useCalculatorStore.getState().pressConvertToFeet();
+useCalculatorStore.getState().toggleInputUnit();
 assert('72" → 6\'', useCalculatorStore.getState().display === `6'`);
-useCalculatorStore.getState().pressConvertToInches();
+useCalculatorStore.getState().toggleInputUnit();
 assert('6\' → 72"', useCalculatorStore.getState().display === `72"`);
 
 reset();
@@ -234,17 +235,17 @@ typeInches(10);
 op('+');
 typeInches(5);
 eq();
-useCalculatorStore.getState().pressConvertToFeet();
+useCalculatorStore.getState().toggleInputUnit();
 assert('15" → 1\' 3"', useCalculatorStore.getState().display === `1' 3"`);
 op('+');
 typeInches(3);
 eq();
-assert('chain after convert: 1\'3" + 3" = 1\'6"', useCalculatorStore.getState().display === `1' 6"`);
+assert('chain after toggle: 1\'3" + 3" = 1\'6"', useCalculatorStore.getState().display === `1' 6"`);
 
 reset();
-typeFeetInches(8, 6);
-useCalculatorStore.getState().pressConvertToInches();
-assert('8\'6" as total inches = 102"', useCalculatorStore.getState().display === `102"`);
+typeInches(102);
+useCalculatorStore.getState().toggleInputUnit();
+assert('102" toggled to 8\'6"', useCalculatorStore.getState().display === `8' 6"`);
 
 // ─── 8. Sign flip during chain ───
 console.log('\n8. Sign flip during chain');
@@ -326,18 +327,14 @@ eq();
 assert('4"+2"=6" (dim after scalar)', useCalculatorStore.getState().display === `6"`);
 
 reset();
-useSettingsStore.getState().updateSettings({ displayMode: 'ft-in-frac', fractionResolution: 16 });
-typeFeetInches(2, 0);
+useCalculatorStore.getState().toggleInputUnit();
+useCalculatorStore.getState().pressDigit(2);
 op('×');
 useCalculatorStore.getState().pressDigit(3);
 eq();
-assert(`2'×3=6' (ft-in-frac mode)`, useCalculatorStore.getState().display === `6'`);
-useSettingsStore.getState().updateSettings({ displayMode: 'in-frac', fractionResolution: 16 });
-useCalculatorStore.getState().refreshDisplayFormat();
-assert(
-  '2\'×3 in in-frac mode shows 72" (same value, different format)',
-  useCalculatorStore.getState().display === `72"`,
-);
+assert(`2'×3=6' (feet mode)`, useCalculatorStore.getState().display === `6'`);
+useCalculatorStore.getState().toggleInputUnit();
+assert('6\' toggled to 72"', useCalculatorStore.getState().display === `72"`);
 
 // ─── 11. in-frac display mode chains ───
 console.log('\n11. in-frac display chains');

@@ -18,10 +18,11 @@ export default function CalculatorScreen() {
   const calc = useCalculatorStore();
   const fractionResolution = useSettingsStore((s) => s.fractionResolution);
   const displayMode = useSettingsStore((s) => s.displayMode);
+  const defaultInputUnit = useSettingsStore((s) => s.defaultInputUnit);
 
   useEffect(() => {
     calc.refreshDisplayFormat();
-  }, [fractionResolution, displayMode]);
+  }, [fractionResolution, displayMode, defaultInputUnit]);
 
   const rows: {
     label: string;
@@ -56,8 +57,7 @@ export default function CalculatorScreen() {
     ],
     [
       { label: '0', variant: 'number', action: () => calc.pressDigit(0), wide: true },
-      { label: '′', variant: 'construction', action: calc.pressConvertToFeet },
-      { label: '″', variant: 'construction', action: calc.pressConvertToInches },
+      { label: 'ft↔in', variant: 'construction', action: calc.toggleInputUnit, double: true },
       { label: 'a⁄c', variant: 'construction', action: calc.pressFraction },
     ],
   ];
@@ -70,6 +70,7 @@ export default function CalculatorScreen() {
             value={calc.display}
             subValue={calc.subDisplay}
             hint={calc.inputHint}
+            unit={calc.inputUnit}
             theme={theme}
           />
         </View>

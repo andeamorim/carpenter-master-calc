@@ -7,6 +7,7 @@ import { DEFAULT_STAIR_VALUES } from '../engine/stairs';
 const defaultSettings: AppSettings = {
   fractionResolution: 16,
   displayMode: 'ft-in-frac',
+  defaultInputUnit: 'inches',
   defaultStudSpacing: 16,
   defaultRiserHeight: DEFAULT_STAIR_VALUES.riserHeight,
   defaultTreadWidth: DEFAULT_STAIR_VALUES.treadWidth,
@@ -30,9 +31,12 @@ export const useSettingsStore = create<SettingsStore>()(
     {
       name: 'carpenter-settings',
       storage: createJSONStorage(() => AsyncStorage),
-      version: 2,
+      version: 3,
       migrate: (persisted) => {
         const state = persisted as AppSettings & Record<string, unknown>;
+        if (state.defaultInputUnit === undefined) {
+          state.defaultInputUnit = 'inches';
+        }
         for (const key of [
           'defaultRiserHeight',
           'defaultTreadWidth',

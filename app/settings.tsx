@@ -9,7 +9,7 @@ import {
   useSubscriptionStore,
 } from '../src/store/subscription';
 import { useSettingsStore } from '../src/store/settings';
-import type { DisplayMode, FractionResolution } from '../src/types';
+import type { DisplayMode, FractionResolution, InputUnit } from '../src/types';
 
 const RESOLUTIONS: FractionResolution[] = [2, 4, 8, 16, 32, 64];
 const DISPLAY_MODES: { value: DisplayMode; label: string }[] = [
@@ -89,6 +89,40 @@ export default function SettingsScreen() {
                   }}
                 >
                   1/{res}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+          <Text style={[styles.subLabel, { color: theme.textSecondary, marginTop: 12 }]}>
+            Default Unit
+          </Text>
+          <Text style={[styles.helpText, { color: theme.textSecondary }]}>
+            Numbers and calculations use this unit until you tap ft↔in on the calculator.
+          </Text>
+          <View style={styles.chipRow}>
+            {([
+              { value: 'inches' as InputUnit, label: 'Inches' },
+              { value: 'feet' as InputUnit, label: 'Feet' },
+            ]).map((opt) => (
+              <Pressable
+                key={opt.value}
+                onPress={() => settings.updateSettings({ defaultInputUnit: opt.value })}
+                style={[
+                  styles.chip,
+                  {
+                    backgroundColor:
+                      settings.defaultInputUnit === opt.value ? theme.primary : theme.surface,
+                    borderColor: theme.border,
+                  },
+                ]}
+              >
+                <Text
+                  style={{
+                    color: settings.defaultInputUnit === opt.value ? '#fff' : theme.text,
+                    fontWeight: '600',
+                  }}
+                >
+                  {opt.label}
                 </Text>
               </Pressable>
             ))}

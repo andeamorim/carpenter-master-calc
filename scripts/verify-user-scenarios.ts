@@ -54,13 +54,13 @@ useCalculatorStore.getState().pressDigit(3);
 eq();
 record('Divisão: cadeia 12 / 3 = 4', '4"', state().display);
 
-// 3. Pés: 5' + 3'6" = 8'6"
-useSettingsStore.getState().updateSettings({ displayMode: 'ft-in-frac', fractionResolution: 16 });
+// 3. Pés: 5' + 3'6" = 8'6" (toggle para feet)
 resetCalculator();
-typeFeetInches(5, 0);
+typeInches(60);
 op('+');
-typeFeetInches(3, 6);
+typeInches(42);
 eq();
+useCalculatorStore.getState().toggleInputUnit();
 record("Pés: 5' + 3'6\" = 8'6\"", "8' 6\"", state().display);
 
 // 4. Após =, operador usa o resultado
@@ -106,13 +106,13 @@ useCalculatorStore.getState().pressQuickFraction(1, 2);
 eq();
 record('Fração rápida: cadeia 6" + 1/2" = 6-1/2"', '6-1/2"', state().display);
 
-// 7. Conversão ′/″ no valor exibido
+// 7. Toggle ft↔in no valor exibido
 resetCalculator();
 typeInches(72);
-useCalculatorStore.getState().pressConvertToFeet();
-record('Conversão: 72" → 6\'', "6'", state().display);
-useCalculatorStore.getState().pressConvertToInches();
-record('Conversão: 6\' → 72"', '72"', state().display);
+useCalculatorStore.getState().toggleInputUnit();
+record('Toggle: 72" → 6\'', "6'", state().display);
+useCalculatorStore.getState().toggleInputUnit();
+record('Toggle: 6\' → 72"', '72"', state().display);
 
 const passed = results.filter((r) => r.pass).length;
 const failed = results.filter((r) => !r.pass).length;

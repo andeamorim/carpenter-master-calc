@@ -74,7 +74,7 @@ export function CalcButton({
       ? r.fractionButtonFontSize
       : small
         ? r.buttonFontSizeSmall
-        : label.length > 3
+        : label.length > 3 || label.includes('↔')
           ? r.buttonFontSizeSmall
           : r.buttonFontSize;
 

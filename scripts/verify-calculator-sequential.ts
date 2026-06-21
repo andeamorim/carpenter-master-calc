@@ -84,22 +84,21 @@ op('+');
 op('-');
 assert('11" + → - swap', useCalculatorStore.getState().subDisplay === `11" -`);
 
-// --- Feet-inch ---
-useSettingsStore.getState().updateSettings({ displayMode: 'ft-in-frac', fractionResolution: 16 });
+// --- Feet-inch (enter in inches, view in feet) ---
 resetCalculator();
-typeFeetInches(5, 0);
+typeInches(60);
 op('+');
-typeFeetInches(3, 6);
+typeInches(42);
 eq();
-assert(`5' + 3'6" = 8'6"`, useCalculatorStore.getState().display === `8' 6"`);
-
-resetCalculator();
-typeFeetInches(8, 6);
-eq();
+assert(`5' + 3'6" = 102" (inches mode)`, useCalculatorStore.getState().display === `102"`);
+useCalculatorStore.getState().toggleInputUnit();
+assert(`toggle to feet: 8'6"`, useCalculatorStore.getState().display === `8' 6"`);
 op('÷');
 useCalculatorStore.getState().pressDigit(2);
 eq();
 assert(`chain: 8'6" / 2 = 4'3"`, useCalculatorStore.getState().display === `4' 3"`);
+useCalculatorStore.getState().toggleInputUnit();
+resetCalculator();
 
 // --- in-frac mode ---
 useSettingsStore.getState().updateSettings({ displayMode: 'in-frac', fractionResolution: 16 });
@@ -134,21 +133,21 @@ useCalculatorStore.getState().pressDigit(2);
 eq();
 assert('after 10", ÷2 = 5"', useCalculatorStore.getState().display === `5"`);
 
-// --- Unit conversion ---
+// --- Unit toggle ---
 resetCalculator();
 typeInches(72);
-useCalculatorStore.getState().pressConvertToFeet();
-assert('72" converts to 6\'', useCalculatorStore.getState().display === `6'`);
-useCalculatorStore.getState().pressConvertToInches();
-assert('6\' converts back to 72"', useCalculatorStore.getState().display === `72"`);
+useCalculatorStore.getState().toggleInputUnit();
+assert('72" toggles to 6\'', useCalculatorStore.getState().display === `6'`);
+useCalculatorStore.getState().toggleInputUnit();
+assert('6\' toggles back to 72"', useCalculatorStore.getState().display === `72"`);
 
 resetCalculator();
 typeInches(10);
 op('+');
 typeInches(5);
 eq();
-useCalculatorStore.getState().pressConvertToFeet();
-assert('15" converts to 1\' 3"', useCalculatorStore.getState().display === `1' 3"`);
+useCalculatorStore.getState().toggleInputUnit();
+assert('15" toggles to 1\' 3"', useCalculatorStore.getState().display === `1' 3"`);
 
 // --- Sign after result ---
 resetCalculator();
