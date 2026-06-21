@@ -15,7 +15,11 @@ export default function Root({ children }: PropsWithChildren) {
         <style
           dangerouslySetInnerHTML={{
             __html: `
-              html, body, #root { height: 100%; width: 100%; }
+              html, body, #root {
+                height: 100%;
+                min-height: 100dvh;
+                width: 100%;
+              }
               body {
                 margin: 0;
                 overflow: hidden;

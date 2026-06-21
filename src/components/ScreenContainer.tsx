@@ -18,7 +18,7 @@ export function ScreenContainer({
   scroll = false,
   style,
   contentStyle,
-  edges = ['bottom'],
+  edges = ['top'],
   centerContent = false,
 }: ScreenContainerProps) {
   const theme = useTheme();

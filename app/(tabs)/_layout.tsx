@@ -23,7 +23,8 @@ export default function TabLayout() {
   const theme = useTheme();
   const r = useResponsive();
   const insets = useSafeAreaInsets();
-  const tabBarBottom = Platform.OS === 'web' ? 6 : Math.max(insets.bottom, 4);
+  const tabBarBottom = Math.max(insets.bottom, Platform.OS === 'web' ? 12 : 6);
+  const tabBarCore = r.isCompactHeight ? 52 : 56;
 
   return (
     <View
@@ -34,6 +35,7 @@ export default function TabLayout() {
     >
       <View style={[styles.shell, { maxWidth: r.appMaxWidth }]}>
         <Tabs
+          safeAreaInsets={{ top: 0, bottom: 0, left: 0, right: 0 }}
           screenOptions={{
             headerStyle: { backgroundColor: theme.surface },
             headerTintColor: theme.text,
@@ -41,12 +43,17 @@ export default function TabLayout() {
             tabBarStyle: {
               backgroundColor: theme.surface,
               borderTopColor: theme.border,
-              height: (r.isCompactHeight ? 50 : 56) + tabBarBottom,
+              borderTopWidth: 1,
+              paddingTop: 6,
               paddingBottom: tabBarBottom,
-              paddingTop: 4,
+              height: tabBarCore + tabBarBottom + 6,
+            },
+            tabBarItemStyle: {
+              paddingVertical: 2,
             },
             tabBarLabelStyle: {
               fontSize: r.isCompactWidth ? 10 : 11,
+              marginBottom: 2,
             },
             tabBarActiveTintColor: theme.primary,
             tabBarInactiveTintColor: theme.textSecondary,

@@ -1,6 +1,7 @@
 import { Stack, router } from 'expo-router';
 import { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useSettingsStore } from '../src/store/settings';
 import { useSubscriptionStore } from '../src/store/subscription';
 
@@ -16,7 +17,7 @@ export default function RootLayout() {
   }, [isSubscribed, isTrialActive, trialStartDate, hasAccess]);
 
   return (
-    <>
+    <SafeAreaProvider>
       <StatusBar style={darkMode ? 'light' : 'dark'} />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" />
@@ -26,6 +27,6 @@ export default function RootLayout() {
         />
         <Stack.Screen name="calculators" />
       </Stack>
-    </>
+    </SafeAreaProvider>
   );
 }
