@@ -15,7 +15,7 @@ const FEATURES = [
   'Right Angle, Rafter, Stair & Framing solvers',
   'Roofing materials estimator',
   'Board feet, drywall & compound miter (PRO)',
-  'Paperless tape & memory functions',
+  'Feet ↔ inches conversion on tap',
   'Offline — works on any job site',
   'No ads, professional UX',
 ];

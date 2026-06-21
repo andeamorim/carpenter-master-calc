@@ -11,11 +11,12 @@ import {
   toDecimalInches,
 } from '../engine/dimensional';
 import type { DimensionalValue } from '../types';
+import type { DisplayMode } from '../types';
 import { useSettingsStore } from './settings';
-import { useTapeStore } from './tape';
 
 type Operator = '+' | '-' | '×' | '÷' | null;
 type InputMode = 'feet' | 'inches' | 'frac-num' | 'frac-den' | 'scalar' | 'idle';
+type ViewMode = 'ft-in-frac' | 'in-frac';
 
 export const QUICK_FRACTIONS = [
   { label: '1/8', num: 1, den: 8 },
@@ -38,13 +39,13 @@ interface CalculatorStore {
   currentInches: number;
   fracNum: number;
   fracDen: number;
-  memory: DimensionalValue;
+  viewMode: ViewMode | null;
   lastResult: DimensionalValue | null;
   isNewEntry: boolean;
 
   pressDigit: (digit: number) => void;
-  pressFeet: () => void;
-  pressInches: () => void;
+  pressConvertToFeet: () => void;
+  pressConvertToInches: () => void;
   pressFraction: () => void;
   pressDenominator: (den: number) => void;
   pressQuickFraction: (num: number, den: number) => void;
@@ -57,10 +58,6 @@ interface CalculatorStore {
   pressSquare: () => void;
   pressSqrt: () => void;
   pressPi: () => void;
-  memoryAdd: () => void;
-  memorySubtract: () => void;
-  memoryRecall: () => void;
-  memoryClear: () => void;
   setDisplayFromValue: (value: DimensionalValue) => void;
   refreshDisplayFormat: () => void;
 }
@@ -96,9 +93,62 @@ function getActiveValue(state: CalculatorStore): DimensionalValue {
   return useLastResult ? state.lastResult! : buildCurrentValue(state);
 }
 
-function formatValue(value: DimensionalValue): string {
-  const { fractionResolution, displayMode } = getSettings();
-  return formatDimensional(value, fractionResolution, displayMode);
+function effectiveDisplayMode(viewMode: ViewMode | null): DisplayMode {
+  if (viewMode) return viewMode;
+  return getSettings().displayMode;
+}
+
+function formatValue(value: DimensionalValue, viewMode: ViewMode | null = null): string {
+  const { fractionResolution } = getSettings();
+  return formatDimensional(value, fractionResolution, effectiveDisplayMode(viewMode));
+}
+
+function valueToEntryFields(
+  value: DimensionalValue,
+): Pick<CalculatorStore, 'currentFeet' | 'currentInches' | 'fracNum' | 'fracDen'> {
+  const negative = value.units < 0;
+  const absUnits = Math.abs(value.units);
+  const feet = Math.floor(absUnits / UNITS_PER_FOOT);
+  const inchUnits = absUnits % UNITS_PER_FOOT;
+  const wholeInches = Math.floor(inchUnits / UNITS_PER_INCH);
+  const fracUnits = inchUnits % UNITS_PER_INCH;
+  const { fractionResolution } = getSettings();
+  let fracNum = 0;
+  let fracDen = 1;
+  if (fracUnits > 0) {
+    fracNum = Math.round((fracUnits / UNITS_PER_INCH) * fractionResolution);
+    fracDen = fractionResolution;
+  }
+  return {
+    currentFeet: negative ? -feet : feet,
+    currentInches: wholeInches,
+    fracNum,
+    fracDen: fracNum > 0 ? fracDen : 0,
+  };
+}
+
+function applyUnitConversion(
+  set: (partial: Partial<CalculatorStore>) => void,
+  get: () => CalculatorStore,
+  targetView: ViewMode,
+) {
+  const state = get();
+  const val = getActiveValue(state);
+  const inChain = !!(state.accumulator && state.pendingOperator);
+  const fields = valueToEntryFields(val);
+
+  set({
+    ...fields,
+    display: formatValue(val, targetView),
+    viewMode: targetView,
+    inputMode: 'inches',
+    isNewEntry: !inChain,
+    lastResult: inChain ? state.lastResult : val,
+    inputHint:
+      targetView === 'ft-in-frac'
+        ? 'Feet · tap ″ to show inches'
+        : 'Inches · tap ′ to show feet',
+  });
 }
 
 function formatInchesOnly(feet: number, inches: number): string {
@@ -145,7 +195,7 @@ function appendFraction(base: string, num: string, den: string): string {
 function getInputHint(mode: InputMode, fracNum: number): string {
   switch (mode) {
     case 'feet':
-      return 'Enter feet, then tap " for inches';
+      return 'Enter number · tap ′ for feet or ″ for inches';
     case 'inches':
       return 'Enter inches · tap a⁄c or a fraction key';
     case 'frac-num':
@@ -157,7 +207,7 @@ function getInputHint(mode: InputMode, fracNum: number): string {
     case 'scalar':
       return 'Enter plain number';
     default:
-      return 'Tap numbers · use " for inches · fraction keys for 7/8, 15/16…';
+      return 'Tap numbers · ′ feet · ″ inches · fraction keys for 7/8…';
   }
 }
 
@@ -198,7 +248,7 @@ function finalizeFractionEntry(
 export const useCalculatorStore = create<CalculatorStore>((set, get) => ({
   display: '0',
   subDisplay: '',
-  inputHint: 'Tap numbers · use " for inches · fraction keys for 7/8, 15/16…',
+  inputHint: 'Tap numbers · ′ feet · ″ inches · fraction keys for 7/8…',
   accumulator: null,
   pendingOperator: null,
   inputMode: 'idle',
@@ -206,7 +256,7 @@ export const useCalculatorStore = create<CalculatorStore>((set, get) => ({
   currentInches: 0,
   fracNum: 0,
   fracDen: 0,
-  memory: fromUnits(0),
+  viewMode: null,
   lastResult: null,
   isNewEntry: true,
 
@@ -257,26 +307,12 @@ export const useCalculatorStore = create<CalculatorStore>((set, get) => ({
     updateDisplay(set, get);
   },
 
-  pressFeet: () => {
-    const state = get();
-    if (state.inputMode === 'inches' || state.inputMode === 'idle' || state.inputMode === 'scalar') {
-      set({
-        inputMode: 'feet',
-        currentFeet: state.currentInches || state.currentFeet,
-        currentInches: 0,
-        fracNum: 0,
-        fracDen: 0,
-        isNewEntry: false,
-      });
-    } else {
-      set({ inputMode: 'feet', isNewEntry: false });
-    }
-    updateDisplay(set, get);
+  pressConvertToFeet: () => {
+    applyUnitConversion(set, get, 'ft-in-frac');
   },
 
-  pressInches: () => {
-    set({ inputMode: 'inches', isNewEntry: false });
-    updateDisplay(set, get);
+  pressConvertToInches: () => {
+    applyUnitConversion(set, get, 'in-frac');
   },
 
   pressFraction: () => {
@@ -323,7 +359,7 @@ export const useCalculatorStore = create<CalculatorStore>((set, get) => ({
     if (state.isNewEntry && state.accumulator && state.pendingOperator) {
       set({
         pendingOperator: op,
-        subDisplay: `${formatValue(state.accumulator)} ${op}`,
+        subDisplay: `${formatValue(state.accumulator, state.viewMode)} ${op}`,
         inputHint: 'Enter next value',
       });
       return;
@@ -335,8 +371,8 @@ export const useCalculatorStore = create<CalculatorStore>((set, get) => ({
       const result = applyOperator(state.accumulator, current, state.pendingOperator);
       set({
         accumulator: result,
-        display: formatValue(result),
-        subDisplay: `${formatValue(result)} ${op}`,
+        display: formatValue(result, state.viewMode),
+        subDisplay: `${formatValue(result, state.viewMode)} ${op}`,
         inputHint: 'Enter next value',
         pendingOperator: op,
         ...resetEntry(state),
@@ -344,8 +380,8 @@ export const useCalculatorStore = create<CalculatorStore>((set, get) => ({
     } else {
       set({
         accumulator: current,
-        display: formatValue(current),
-        subDisplay: `${formatValue(current)} ${op}`,
+        display: formatValue(current, state.viewMode),
+        subDisplay: `${formatValue(current, state.viewMode)} ${op}`,
         inputHint: 'Enter next value',
         pendingOperator: op,
         ...resetEntry(state),
@@ -359,12 +395,10 @@ export const useCalculatorStore = create<CalculatorStore>((set, get) => ({
 
     const current = buildCurrentValue(state);
     const result = applyOperator(state.accumulator, current, state.pendingOperator);
-    const expression = `${formatValue(state.accumulator)} ${state.pendingOperator} ${formatValue(current)}`;
-
-    useTapeStore.getState().addEntry(expression, formatValue(result));
+    const expression = `${formatValue(state.accumulator, state.viewMode)} ${state.pendingOperator} ${formatValue(current, state.viewMode)}`;
 
     set({
-      display: formatValue(result),
+      display: formatValue(result, state.viewMode),
       subDisplay: expression,
       inputHint: getInputHint('idle', 0),
       accumulator: null,
@@ -382,6 +416,7 @@ export const useCalculatorStore = create<CalculatorStore>((set, get) => ({
       accumulator: null,
       pendingOperator: null,
       lastResult: null,
+      viewMode: null,
       currentFeet: 0,
       currentInches: 0,
       fracNum: 0,
@@ -421,7 +456,11 @@ export const useCalculatorStore = create<CalculatorStore>((set, get) => ({
     const state = get();
     const val = getActiveValue(state);
     const negated = fromUnits(-val.units);
-    set({ display: formatValue(negated), lastResult: negated, ...resetEntry(state) });
+    set({
+      display: formatValue(negated, state.viewMode),
+      lastResult: negated,
+      ...resetEntry(state),
+    });
   },
 
   pressSquare: () => {
@@ -429,7 +468,7 @@ export const useCalculatorStore = create<CalculatorStore>((set, get) => ({
     const val = getActiveValue(state);
     const squared = fromDecimalInches(toDecimalInches(val) ** 2);
     set({
-      display: formatValue(squared),
+      display: formatValue(squared, state.viewMode),
       lastResult: squared,
       inputHint: getInputHint('idle', 0),
       ...resetEntry(state),
@@ -443,7 +482,7 @@ export const useCalculatorStore = create<CalculatorStore>((set, get) => ({
     if (inches < 0) return;
     const result = fromDecimalInches(Math.sqrt(inches));
     set({
-      display: formatValue(result),
+      display: formatValue(result, state.viewMode),
       lastResult: result,
       inputHint: getInputHint('idle', 0),
       ...resetEntry(state),
@@ -453,48 +492,17 @@ export const useCalculatorStore = create<CalculatorStore>((set, get) => ({
   pressPi: () => {
     const result = fromDecimalInches(Math.PI);
     set({
-      display: formatValue(result),
+      display: formatValue(result, get().viewMode),
       lastResult: result,
       inputHint: getInputHint('idle', 0),
       ...resetEntry(get()),
     });
   },
 
-  memoryAdd: () => {
-    const state = get();
-    set({ memory: add(state.memory, getActiveValue(state)), isNewEntry: true });
-  },
-
-  memorySubtract: () => {
-    const state = get();
-    set({ memory: subtract(state.memory, getActiveValue(state)), isNewEntry: true });
-  },
-
-  memoryRecall: () => {
-    const state = get();
-    const mem = state.memory;
-    const feet = Math.floor(Math.abs(mem.units) / UNITS_PER_FOOT);
-    const inchUnits = Math.abs(mem.units) % UNITS_PER_FOOT;
-    const wholeInches = Math.floor(inchUnits / UNITS_PER_INCH);
-    const fracUnits = inchUnits % UNITS_PER_INCH;
-    set({
-      display: formatValue(mem),
-      lastResult: mem,
-      currentFeet: mem.units < 0 ? -feet : feet,
-      currentInches: wholeInches,
-      fracNum: fracUnits > 0 ? 1 : 0,
-      fracDen: fracUnits > 0 ? UNITS_PER_INCH : 0,
-      inputMode: 'inches',
-      isNewEntry: false,
-      inputHint: getInputHint('inches', 0),
-    });
-  },
-
-  memoryClear: () => set({ memory: fromUnits(0) }),
-
   setDisplayFromValue: (value) => {
+    const state = get();
     set({
-      display: formatValue(value),
+      display: formatValue(value, state.viewMode),
       lastResult: value,
       inputHint: getInputHint('idle', 0),
       ...resetEntry(get()),
@@ -512,7 +520,7 @@ export const useCalculatorStore = create<CalculatorStore>((set, get) => ({
       return;
     }
     if (state.lastResult && state.isNewEntry && state.inputMode === 'idle') {
-      set({ display: formatValue(state.lastResult) });
+      set({ display: formatValue(state.lastResult, state.viewMode) });
       return;
     }
     updateDisplay(set, get);

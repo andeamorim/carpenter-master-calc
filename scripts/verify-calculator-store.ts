@@ -21,9 +21,7 @@ function reset() {
 }
 
 function typeInches(n: number) {
-  const digits = String(n).split('').map(Number);
-  for (const d of digits) useCalculatorStore.getState().pressDigit(d);
-  useCalculatorStore.getState().pressInches();
+  for (const d of String(n)) useCalculatorStore.getState().pressDigit(Number(d));
 }
 
 console.log('Verifying calculator store flows...\n');

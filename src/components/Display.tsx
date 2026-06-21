@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { useResponsive } from '../hooks/useResponsive';
 import type { Theme } from '../theme/colors';
 
@@ -7,32 +7,14 @@ interface DisplayProps {
   subValue?: string;
   hint?: string;
   theme: Theme;
-  tapeVisible?: boolean;
-  tapeEntries?: { expression: string; result: string }[];
 }
 
-export function Display({ value, subValue, hint, theme, tapeVisible, tapeEntries }: DisplayProps) {
+export function Display({ value, subValue, hint, theme }: DisplayProps) {
   const r = useResponsive();
-  const showHint = hint && hint !== 'Tap numbers · use " for inches · fraction keys for 7/8, 15/16…';
+  const showHint = hint && hint !== 'Tap numbers · ′ feet · ″ inches · fraction keys for 7/8…';
 
   return (
     <View style={[styles.container, { minHeight: r.displayMinHeight }]}>
-      {tapeVisible && tapeEntries && tapeEntries.length > 0 && (
-        <ScrollView
-          style={[styles.tape, { maxHeight: r.isCompactHeight ? 40 : 56 }]}
-          nestedScrollEnabled
-        >
-          {tapeEntries.slice(0, 5).map((entry, i) => (
-            <Text
-              key={i}
-              style={[styles.tapeLine, { color: theme.textSecondary, fontSize: r.hintFontSize }]}
-            >
-              {entry.expression} = {entry.result}
-            </Text>
-          ))}
-        </ScrollView>
-      )}
-
       {subValue ? (
         <Text
           style={[
@@ -75,12 +57,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     paddingHorizontal: 8,
     paddingBottom: 4,
-  },
-  tape: { marginBottom: 6 },
-  tapeLine: {
-    textAlign: 'right',
-    fontFamily: 'Menlo',
-    marginBottom: 2,
   },
   subDisplay: {
     textAlign: 'right',
