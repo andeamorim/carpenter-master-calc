@@ -97,7 +97,7 @@ export default function SettingsScreen() {
             Default Unit
           </Text>
           <Text style={[styles.helpText, { color: theme.textSecondary }]}>
-            Numbers and calculations use this unit until you tap ft↔in on the calculator.
+            Numbers and calculations use this unit until you tap INCH/FEET on the display.
           </Text>
           <View style={styles.chipRow}>
             {([

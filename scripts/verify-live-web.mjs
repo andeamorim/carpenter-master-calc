@@ -147,10 +147,30 @@ async function main() {
 
   await runScenario(
     page,
-    'Toggle: 72 → ft↔in → 6\'',
-    ['7', '2', 'ft↔in'],
-    "6'",
+    'Toggle: 72 → FEET no visor → 6\'',
+    ['7', '2'],
+    '72"',
   );
+
+  // Toggle unit via display (clica FEET)
+  await pressAC(page);
+  for (const step of ['7', '2']) await clickButton(page, step);
+  const toggled = await page.evaluate(() => {
+    const els = [...document.querySelectorAll('div')];
+    const unitToggle = els.find(
+      (el) => el.textContent?.trim() === 'INCHFEET' || el.textContent?.includes('FEET'),
+    );
+    for (const el of els) {
+      const t = el.textContent?.trim();
+      if (t === 'FEET' && el.getBoundingClientRect().height > 0) {
+        el.click();
+        return true;
+      }
+    }
+    return false;
+  });
+  const afterToggle = await getDisplay(page);
+  record('Toggle display: 72" → 6\'', "6'", afterToggle, toggled && afterToggle === "6'");
 
   await seedStorage(page, 'ft-in-frac');
   await page.goto(BASE, { waitUntil: 'networkidle', timeout: 60000 });

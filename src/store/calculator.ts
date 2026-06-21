@@ -107,6 +107,7 @@ function getActiveValue(state: CalculatorStore): DimensionalValue {
 }
 
 function formatValue(value: DimensionalValue, unit: InputUnit): string {
+  if (value.units === 0) return zeroDisplay(unit);
   const { fractionResolution } = getSettings();
   return formatDimensional(value, fractionResolution, displayModeForUnit(unit));
 }
@@ -196,8 +197,8 @@ function getInputHint(unit: InputUnit, mode: InputMode, fracNum: number): string
       return unit === 'feet' ? 'Enter feet' : 'Enter inches';
     default:
       return unit === 'feet'
-        ? 'Feet mode · tap ft↔in to switch'
-        : 'Inches mode · tap ft↔in to switch';
+        ? 'Feet mode · tap unit above to switch'
+        : 'Inches mode · tap unit above to switch';
   }
 }
 
@@ -265,7 +266,7 @@ function finalizeFractionEntry(
 export const useCalculatorStore = create<CalculatorStore>((set, get) => ({
   display: '0"',
   subDisplay: '',
-  inputHint: 'Inches mode · tap ft↔in to switch',
+  inputHint: 'Inches mode · tap unit above to switch',
   accumulator: null,
   pendingOperator: null,
   inputMode: 'idle',

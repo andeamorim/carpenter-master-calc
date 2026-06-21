@@ -29,12 +29,11 @@ export default function CalculatorScreen() {
     variant: BtnVariant;
     action: () => void;
     wide?: boolean;
-    double?: boolean;
   }[][] = [
     [
       { label: 'AC', variant: 'function', action: calc.pressClear },
       { label: 'CE', variant: 'function', action: calc.pressClearEntry },
-      { label: '⌫', variant: 'function', action: calc.pressBackspace, double: true },
+      { label: '⌫', variant: 'function', action: calc.pressBackspace },
       { label: '÷', variant: 'operator', action: () => calc.pressOperator('÷') },
     ],
     [
@@ -57,7 +56,6 @@ export default function CalculatorScreen() {
     ],
     [
       { label: '0', variant: 'number', action: () => calc.pressDigit(0), wide: true },
-      { label: 'ft↔in', variant: 'construction', action: calc.toggleInputUnit, double: true },
       { label: 'a⁄c', variant: 'construction', action: calc.pressFraction },
     ],
   ];
@@ -72,6 +70,7 @@ export default function CalculatorScreen() {
             hint={calc.inputHint}
             unit={calc.inputUnit}
             theme={theme}
+            onToggleUnit={calc.toggleInputUnit}
           />
         </View>
 
@@ -104,7 +103,6 @@ export default function CalculatorScreen() {
                   variant={btn.variant}
                   theme={theme}
                   wide={btn.wide}
-                  double={btn.double}
                   onPress={btn.action}
                 />
               ))}
@@ -146,6 +144,5 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
-    alignItems: 'center',
   },
 });
