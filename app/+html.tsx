@@ -28,6 +28,11 @@ export default function Root({ children }: PropsWithChildren) {
                 touch-action: manipulation;
               }
               * { box-sizing: border-box; }
+              @media (max-width: 768px) {
+                #root {
+                  padding-bottom: env(safe-area-inset-bottom, 28px);
+                }
+              }
               @media (min-width: 900px) {
                 body { background: #1a1a1e; }
               }

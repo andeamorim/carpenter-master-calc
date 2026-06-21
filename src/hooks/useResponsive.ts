@@ -116,7 +116,9 @@ export function useResponsive(): ResponsiveMetrics {
       sectionTitleFontSize: Math.round(clamp(18 * scale, 15, 20)),
       needsScroll: usableHeight < 620 || (isWeb && height < 760),
       fractionButtonMinWidth: Math.round(clamp(44 * scale, 34, 52)),
-      tabBarHeight: (isCompactHeight ? 50 : 56) + insets.bottom,
+      tabBarHeight:
+        50 +
+        (Platform.OS === 'web' && width < 768 ? 28 : Math.max(insets.bottom, 8)),
     };
   }, [width, height, insets.top, insets.bottom]);
 }
