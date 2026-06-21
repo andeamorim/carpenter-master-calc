@@ -28,12 +28,11 @@
 ```
 carpenter-master-calc/
 ├── app/
-│   ├── (tabs)/
-│   │   ├── index.tsx          # Calculadora principal
-│   │   ├── ez-calcs.tsx       # Lista de calculadoras guiadas
-│   │   ├── projects.tsx       # Placeholder Phase 2
-│   │   ├── settings.tsx       # Precisão, modo display, dark mode
-│   │   └── _layout.tsx        # Tab bar responsiva
+│   ├── index.tsx              # ⭐ Calculadora principal
+│   ├── ez-calcs.tsx           # Lista de calculadoras guiadas
+│   ├── projects.tsx           # Placeholder Phase 2
+│   ├── settings.tsx           # Precisão, modo display, defaultInputUnit, dark mode
+│   ├── _layout.tsx            # Layout + menu
 │   ├── calculators/           # Stack de EZ Calcs
 │   │   ├── right-angle.tsx
 │   │   ├── rafter.tsx
@@ -245,7 +244,7 @@ npm run verify-all && npm run typecheck
 
 ### Web (Vercel)
 ```bash
-npx vercel --prod
+npx vercel --prod --yes
 ```
 - Build: `npm run build:web` → pasta `dist/`
 - Config: `vercel.json`
@@ -369,6 +368,7 @@ git show v1.1.0-behavior-verified
 3. **Não reintroduza** memory, tape, ou ± sem pedido explícito.
 4. **Não reintroduza** teclas `′`/`″` separadas — unidade é só o toggle INCH/FEET no visor.
 5. **Não reintroduza** teclas de denominador laranja ou Pitch/Stair na tela principal.
+6. Mudanças em `dimensional.ts` ou `calculator.ts` exigem atualizar scripts `verify-*`.
 7. Default de arredondamento é **16** (1/16"), não 32.
 8. Modo `in-frac` mostra polegadas totais, nunca pés.
 9. Em FEET, dígitos = pés; polegadas via `.` (ex: `0.3` = 0'3").
@@ -376,14 +376,121 @@ git show v1.1.0-behavior-verified
 
 ---
 
-## 13. Release `v1.1.0-behavior-verified` (2026-06-20)
+## 13. Histórico de evolução da calculadora (sessões 2026-06-20)
+
+Ordem das mudanças pedidas pelo usuário:
+
+1. **Simplificação** — remover Tape, memória (MC/MR/M+/M−), botão ±
+2. **Unidade** — `′`/`″` viraram toggle único; depois **só no visor** (INCH|FEET, canto superior direito)
+3. **⌫** — mesma largura que AC/CE (altura dobrada foi revertida)
+4. **Modo FEET/INCH** — toggle no visor; padrão INCHES; AC/CE **não mudam** unidade
+5. **Operações em FEET** — `8 + 3 = 11'` (operandos dimensionais em pés); ×/÷ usam escalar
+6. **Tecla `.`** — em FEET: notação carpinteiro `3.6` = 3'6"; desativada em INCH
+7. **Frações** — desativadas em FEET até apertar `.`
+8. **Análise de comportamento** — suítes de teste + documentação completa
+
+**Commits relevantes:**
+| Hash | Descrição |
+|------|-----------|
+| `d6154e9` | Toggle unidade só no display |
+| `781d4ab` | FEET em +/-; AC preserva unidade |
+| `9dd558c` | `.` para entrada 3.6 = 3'6" |
+| `778fcf1` | `.` desabilitado em INCH; frações em FEET só após `.` |
+| `2d9cd7f` | Análise comportamento + test suites + memória |
+
+**Tags:** `v1.0.0-mvp` → `v1.1.0-behavior-verified`
+
+---
+
+## 14. Matriz de comportamento — o que acontece ao clicar teclas
+
+### Dígitos (`0`–`9`)
+| Situação | Comportamento |
+|----------|---------------|
+| Primeiro dígito após `=` | **Substitui** resultado (`10"` → `5` → `5"`) |
+| Dígitos seguidos | Concatenam (`1` `2` `3` → `123"`) |
+| Zeros à esquerda | Ignorados (`0` `0` `5` → `5"`) |
+| Após operador `+`/`−` | Operando dimensional na unidade ativa |
+| Após operador `×`/`÷` | Operando **escalar** (sem `"`/`'`, ex: `2`) |
+
+### Operadores
+| Ação | Resultado |
+|------|-----------|
+| `10` `+` `5` `+` | Calcula `15`, pendente `+` (sem `=`) |
+| `11` `+` `−` (sem 2º operando) | Troca para `11" −` |
+| `10` `+` `5` `−` | Calcula `15`, pendente `−` |
+| `2` `+` `3` `+` `4` `=` | `9"` (esquerda → direita) |
+
+### `=` (igual)
+| Ação | Resultado |
+|------|-----------|
+| `10` `+` `5` `=` | `15"` |
+| `10` `+` `=` (vazio) | `10"` (operando = 0) |
+| `15` `×` `=` (vazio) | `0"` ⚠️ limitação |
+| Segundo `=` após resultado | **Não repete** — fica no mesmo valor |
+
+### AC vs CE
+| Tecla | Limpa | Preserva |
+|-------|-------|----------|
+| **AC** | Tudo (cadeia, resultado, entrada) | `inputUnit` |
+| **CE** | Só entrada atual | Cadeia + `inputUnit` |
+
+### ⌫ (backspace)
+- Apaga último dígito da entrada
+- Fração (`a⁄c`): apaga num/den
+- FEET + `.`: `3.65` → `3.6` → `3.` → `3`
+- Apagar tudo → idle (`0"` ou `0'`)
+
+### Frações
+- **INCH:** frações rápidas + `a⁄c` sempre habilitados; `.` desabilitado
+- **FEET:** frações só **após** `.` (ex: `3` `.` `6` depois `1/2` → `3'6-1/2"`)
+- Manual: `6` → `a⁄c` → `1` → denominador `2` → `6-1/2"`
+
+### Toggle INCH↔FEET (caso `7"` explicado ao usuário)
+1. INCH, digita `7` → visor `7"` (7 polegadas internamente)
+2. Toca FEET → **mesmo valor**, reformatado: `7"` (0'7", compacto — **não** vira 7 pés)
+3. Estado: `inputUnit=feet`, `currentFeet=0`, `currentInches=7`, `isNewEntry=true`, `lastResult=7"`
+4. Se digitar `3` sem operador → **nova entrada** `3'` (7" descartado)
+5. Se `+` depois `3` → `7" + 3'` usando lastResult
+6. Para 7 **pés**: selecionar FEET **antes** de digitar `7` → `7'`
+
+### Armadilhas em FEET durante cadeias
+- Dígitos = **pés**. Para somar polegadas: `1` (=1'), `0` `.` `3` (=0'3"), ou toggle INCH
+- Ex.: `4'3" + 12"` em FEET → digitar `12` = 12 pés (errado); usar `1` ou `0.3`
+
+---
+
+## 15. Estado Git / Deploy (2026-06-20)
+
+| Item | Valor |
+|------|-------|
+| Branch | `main` |
+| Último commit | `2d9cd7f` |
+| Tag atual | `v1.1.0-behavior-verified` |
+| GitHub | https://github.com/andeamorim/carpenter-master-calc |
+| Web | https://carpenter-master-calc.vercel.app |
+| Testes | `verify-all` 76/76 + `verify-edge` 51/51 |
+
+**Workflow de publicação:**
+```bash
+npm run verify-all && npm run typecheck
+git add -A && git commit -m "..." && git push origin main
+git tag -a vX.Y.Z -m "..." && git push origin vX.Y.Z   # se release
+npx vercel --prod --yes
+# Hard refresh no browser (Cmd+Shift+R) por causa de cache
+```
+
+---
+
+## 16. Release `v1.1.0-behavior-verified` (2026-06-20)
 
 - Análise completa de comportamento da calculadora (teclas, cadeias, edge cases)
 - Suíte `verify-calculator-behavior.ts` (34 cenários INCH/FEET)
 - `verify-edge` corrigido (reset de unidade entre seções) — 51 testes
 - `verify-all` = 76 testes passando
 - Documentado: toggle `7"`→FEET, AC/CE, frações, limitações de `=` repetido
+- Deploy Vercel produção confirmado
 
 ---
 
-*Atualizado em 2026-06-20 — calculadora simplificada + comportamento verificado.*
+*Atualizado em 2026-06-20 — memória completa da calculadora simplificada + comportamento verificado.*
